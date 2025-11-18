@@ -11,6 +11,7 @@ final pathsNotAuthenticated = [
   '/auth/create_password',
   '/auth/refresh_token',
   '/ws',
+  '/assets',
   '/',
 ];
 

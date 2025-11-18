@@ -9,7 +9,7 @@ class DesertMap extends GameMap with GameRef<GameServer> {
   DesertMap({
     super.id = 'desertId',
     super.name = 'desert',
-    super.path = 'map2/desert.tmj',
+    super.path = 'maps/map2/desert.tmj',
   });
 
   @override
