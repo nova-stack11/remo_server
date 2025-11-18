@@ -6,7 +6,16 @@ BUNDLES_DIR="$BASE_DIR/../assets/bundles"
 OUTPUT_DIR="$BASE_DIR/../public/bundles"
 FINGERPRINT_FILE="$BASE_DIR/../public/assets_fingerprint.json"
 
+
 mkdir -p $OUTPUT_DIR
+
+MAPS_SRC="$BASE_DIR/../assets/bundles/maps"
+MAPS_DST="$BASE_DIR/../public/maps"
+
+echo "📁 Copying maps folder..."
+rm -rf "$MAPS_DST"
+mkdir -p "$MAPS_DST"
+cp -R "$MAPS_SRC/" "$MAPS_DST/"
 
 echo "{" > $FINGERPRINT_FILE
 echo '  "bundles": {' >> $FINGERPRINT_FILE
@@ -35,7 +44,7 @@ for bundle in $BUNDLES_DIR/*; do
       echo "," >> $FINGERPRINT_FILE
     fi
 
-    echo "    \"$name\": { \"hash\": \"$hash\", \"version\": \"$version\" }" >> $FINGERPRINT_FILE
+    echo "    \"$name\": { \"hash\": \"$hash\" }" >> $FINGERPRINT_FILE
   fi
 done
 
