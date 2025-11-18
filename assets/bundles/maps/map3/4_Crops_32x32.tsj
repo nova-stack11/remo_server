@@ -1,0 +1,14 @@
+{ "columns":20,
+ "image":"4_Crops_32x32.png",
+ "imageheight":1216,
+ "imagewidth":640,
+ "margin":0,
+ "name":"4_Crops_32x32",
+ "spacing":0,
+ "tilecount":760,
+ "tiledversion":"1.10.2",
+ "tileheight":32,
+ "tilewidth":32,
+ "type":"tileset",
+ "version":"1.10"
+}

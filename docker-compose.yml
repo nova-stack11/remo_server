@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: game_user
+      POSTGRES_PASSWORD: secret123
+      POSTGRES_DB: game_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  game_server:
+    build: .
+    container_name: dart_game_server
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: game_db
+      DATABASE_USER: game_user
+      DATABASE_PASSWORD: secret123
+      ASSET_API_KEY: 9eab4d4c1cf22e5a3097ac0a7b62ebc0ddf6dcaffc2664ab3b12c0f61aa4c6e1
+    ports:
+      - "8080:8080"
+    command: ["/app/bin/server"]
+
+volumes:
+  pgdata:

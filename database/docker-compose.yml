@@ -1,0 +1,19 @@
+# Only for local development and testing purposes. For production, use root compose file.
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: game_user
+      POSTGRES_PASSWORD: secret123
+      POSTGRES_DB: game_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
