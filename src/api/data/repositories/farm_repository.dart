@@ -1,9 +1,16 @@
 import '../datasource/farm_datasource.dart';
+import '../model/user_farm_plant.dart';
 
 class FarmRepository {
   FarmRepository({required this.datasource});
 
   final FarmDataSource datasource;
+
+
+  Future<List<UserFarmPlant>> getUserFarmPlants(String userId) async {
+    final rows = await datasource.getUserFarmPlants(userId);
+    return rows.map((e) => UserFarmPlant.fromMap(e)).toList();
+  }
 
   // ===========================
   // PLANT SEED
@@ -19,8 +26,8 @@ class FarmRepository {
     // Check tile occupied
     final existing = await datasource.getPlantByTile(
       userId: userId,
-      tileX: tileX,
-      tileY: tileY,
+      x: tileX,
+      y: tileY,
     );
 
     if (existing != null) {
@@ -29,8 +36,8 @@ class FarmRepository {
 
     final plant = await datasource.plantSeed(
       userId: userId,
-      tileX: tileX,
-      tileY: tileY,
+      x: tileX,
+      y: tileY,
       seedId: seedId,
       now: now,
     );

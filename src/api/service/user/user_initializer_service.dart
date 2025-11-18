@@ -32,15 +32,14 @@ class UserInitializerService {
       for (var y = 1; y <= maxY; y++) {
         counter++;
 
-        final plotCode = 'x${x}y${y}';
-
         final state = counter <= 6
             ? GardenPlotState.unlocked.name
             : GardenPlotState.locked.name;
 
         await gardenDatasource.createGardenPlot(
           userId: userId,
-          plotCode: plotCode,
+          x: x,
+          y: y,
           plotState: state,
         );
       }

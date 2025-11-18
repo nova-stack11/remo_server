@@ -5,19 +5,22 @@ import '../../../database/database.dart';
 abstract class GardenDatasource {
   Future<void> createGardenPlot({
     required String userId,
-    required String plotCode,
+    required int x,
+    required int y,
     required String plotState,
   });
 
   Future<void> updateGardenPlot({
     required String userId,
-    required String plotCode,
+    required int x,
+    required int y,
     required String plotState,
   });
 
   Future<void> deleteGardenPlot({
     required String userId,
-    required String plotCode,
+    required int x,
+    required int y,
   });
 
   Future<List<Map<String, dynamic>>> getGardenPlots(String userId);
@@ -31,20 +34,22 @@ class GardenDatasourceImpl implements GardenDatasource {
   @override
   Future<void> createGardenPlot({
     required String userId,
-    required String plotCode,
+    required int x,
+    required int y,
     required String plotState,
   }) async {
     final query = Sql.named('''
-      INSERT INTO user_garden_plots (user_id, plot_code, plot_state)
-      VALUES (@user_id, @plot_code, @plot_state)
-      ON CONFLICT (user_id, plot_code) DO NOTHING
+      INSERT INTO user_garden_plots (user_id, x, y, plot_state)
+      VALUES (@user_id, @x, @y, @plot_state)
+      ON CONFLICT (user_id, x, y) DO NOTHING
     ''');
 
     await db.connection.execute(
       query,
       parameters: {
         'user_id': userId,
-        'plot_code': plotCode,
+        'x': x,
+        'y': y,
         'plot_state': plotState,
       },
     );
@@ -53,20 +58,22 @@ class GardenDatasourceImpl implements GardenDatasource {
   @override
   Future<void> updateGardenPlot({
     required String userId,
-    required String plotCode,
+    required int x,
+    required int y,
     required String plotState,
   }) async {
     final query = Sql.named('''
       UPDATE user_garden_plots
       SET plot_state = @plot_state
-      WHERE user_id = @user_id AND plot_code = @plot_code
+      WHERE user_id = @user_id AND x = @x AND y = @y
     ''');
 
     await db.connection.execute(
       query,
       parameters: {
         'user_id': userId,
-        'plot_code': plotCode,
+        'x': x,
+        'y': y,
         'plot_state': plotState,
       },
     );
@@ -75,18 +82,20 @@ class GardenDatasourceImpl implements GardenDatasource {
   @override
   Future<void> deleteGardenPlot({
     required String userId,
-    required String plotCode,
+    required int x,
+    required int y,
   }) async {
     final query = Sql.named('''
       DELETE FROM user_garden_plots
-      WHERE user_id = @user_id AND plot_code = @plot_code
+      WHERE user_id = @user_id AND x = @x AND y = @y
     ''');
 
     await db.connection.execute(
       query,
       parameters: {
         'user_id': userId,
-        'plot_code': plotCode,
+        'x': x,
+        'y': y,
       },
     );
   }
@@ -96,7 +105,7 @@ class GardenDatasourceImpl implements GardenDatasource {
     final query = Sql.named('''
       SELECT * FROM user_garden_plots
       WHERE user_id = @user_id
-      ORDER BY plot_code ASC
+      ORDER BY y ASC, x ASC
     ''');
 
     final result = await db.connection.execute(

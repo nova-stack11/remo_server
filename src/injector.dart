@@ -5,11 +5,13 @@ import 'api/data/datasource/db_datasource.dart';
 import 'api/data/datasource/farm_datasource.dart';
 import 'api/data/datasource/garden_datasource.dart';
 import 'api/data/datasource/inventory_datasource.dart';
+import 'api/data/datasource/seed_datasource.dart';
 import 'api/data/datasource/user_datasource.dart';
 import 'api/data/datasource/user_seed_datasource.dart';
 import 'api/data/repositories/character_repository.dart';
 import 'api/data/repositories/farm_repository.dart';
 import 'api/data/repositories/garden_repository.dart';
+import 'api/data/repositories/seed_repository.dart';
 import 'api/data/repositories/user_repository.dart';
 import 'api/service/user/user_initializer_service.dart';
 import 'api/usecases/authenticator.dart';
@@ -61,6 +63,14 @@ abstract class Injector {
           ),
         )
         .use(
+          provider(
+            (context) => SeedRepository(
+              datasource: context.read(),
+            ),
+          ),
+        )
+
+        .use(
           provider<GenerateJwtUsecase>(
             (context) => GenerateJwtUsecase(
               secretKey: Config.secretJWT,
@@ -104,6 +114,11 @@ abstract class Injector {
         .use(
           provider<FarmDataSource>(
             (_) => FarmDataSourceImpl(dbService),
+          ),
+        )
+        .use(
+          provider<SeedDataSource>(
+            (_) => SeedDataSourceImpl(dbService),
           ),
         )
         // ---------------------------------------------------------

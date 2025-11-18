@@ -3,8 +3,8 @@ import '../../../database/database.dart';
 abstract class FarmDataSource {
   Future<Map<String, dynamic>?> plantSeed({
     required String userId,
-    required int tileX,
-    required int tileY,
+    required int x,
+    required int y,
     required int seedId,
     required DateTime now,
   });
@@ -18,9 +18,11 @@ abstract class FarmDataSource {
   Future<Map<String, dynamic>?> getSeedById(int seedId);
   Future<Map<String, dynamic>?> getPlantByTile({
     required String userId,
-    required int tileX,
-    required int tileY,
+    required int x,
+    required int y,
   });
+
+  Future<List<Map<String, dynamic>>> getUserFarmPlants(String userId);
 }
 
 /// Triển khai datasource cho farm, kết nối PostgreSQL qua DatabaseService
@@ -38,23 +40,40 @@ class FarmDataSourceImpl implements FarmDataSource {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> getUserFarmPlants(String userId) async {
+    final query = Sql.named(
+      '''
+      SELECT * FROM user_farm_plants
+      WHERE user_id=@userId
+      ORDER BY y ASC, x ASC
+      '''
+    );
+
+    final result = await db.connection.execute(query, parameters: {
+      'userId': userId,
+    });
+
+    return result.map((row) => row.toColumnMap()).toList();
+  }
+
+  @override
   Future<Map<String, dynamic>?> getPlantByTile({
     required String userId,
-    required int tileX,
-    required int tileY,
+    required int x,
+    required int y,
   }) async {
     final query = Sql.named(
         '''
       SELECT * FROM user_farm_plants
-      WHERE user_id=@userId AND tile_x=@x AND tile_y=@y
+      WHERE user_id=@userId AND x=@x AND y=@y
       LIMIT 1
       '''
     );
 
     final result = await db.connection.execute(query, parameters: {
       'userId': userId,
-      'x': tileX,
-      'y': tileY,
+      'x': x,
+      'y': y,
     });
 
     if (result.isEmpty) return null;
@@ -64,8 +83,8 @@ class FarmDataSourceImpl implements FarmDataSource {
   @override
   Future<Map<String, dynamic>?> plantSeed({
     required String userId,
-    required int tileX,
-    required int tileY,
+    required int x,
+    required int y,
     required int seedId,
     required DateTime now,
   }) async {
@@ -75,7 +94,7 @@ class FarmDataSourceImpl implements FarmDataSource {
     final query = Sql.named(
         '''
       INSERT INTO user_farm_plants 
-        (user_id, tile_x, tile_y, seed_id,
+        (user_id, x, y, seed_id,
          planted_at, last_watered_at, 
          grow_duration, water_interval)
       VALUES
@@ -88,8 +107,8 @@ class FarmDataSourceImpl implements FarmDataSource {
 
     final result = await db.connection.execute(query, parameters: {
       'userId': userId,
-      'x': tileX,
-      'y': tileY,
+      'x': x,
+      'y': y,
       'seedId': seedId,
       'now': now,
       'grow': seed['grow_duration'],

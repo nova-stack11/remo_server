@@ -44,7 +44,7 @@ Future<Response> _handleGetGarden(
 
 /// ===============================
 /// POST: /garden  → update plot state
-/// body: { "plotCode": "x1y3", "state": 2 }
+/// body: { "x": 1, "y": 3, "state": "unlocked" }
 /// ===============================
 Future<Response> _handleUpdateState(
     RequestContext context,
@@ -53,10 +53,11 @@ Future<Response> _handleUpdateState(
   final body = await context.bodyAsMap();
   final userId = context.userIdFromJwt;
 
-  final plotCode = body['plotCode'] as String?;
+  final x = body['x'] as int?;
+  final y = body['y'] as int?;
   final state = body['state'] as String?;
 
-  if (userId == null || plotCode == null || state == null) {
+  if (userId == null || x == null || y == null || state == null) {
     return ApiResponseFactory.error(
       message: "Missing required fields",
       statusCode: 400,
@@ -75,7 +76,8 @@ Future<Response> _handleUpdateState(
 
   final ok = await repo.updatePlotState(
     userId: userId,
-    plotCode: plotCode,
+    x: x,
+    y: y,
     state: state,
   );
 

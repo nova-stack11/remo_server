@@ -10,12 +10,14 @@ class GardenRepository {
 
   Future<bool> updatePlotState({
     required String userId,
-    required String plotCode,
+    required int x,
+    required int y,
     required String state,
   }) async {
     await datasource.updateGardenPlot(
       userId: userId,
-      plotCode: plotCode,
+      x: x,
+      y: y,
       plotState: state,
     );
     return true;
