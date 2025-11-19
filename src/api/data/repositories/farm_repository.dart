@@ -7,9 +7,9 @@ class FarmRepository {
   final FarmDataSource datasource;
 
 
-  Future<List<UserFarmPlant>> getUserFarmPlants(String userId) async {
+  Future<List<Map<String, dynamic>>> getUserFarmPlants(String userId) async {
     final rows = await datasource.getUserFarmPlants(userId);
-    return rows.map((e) => UserFarmPlant.fromMap(e)).toList();
+    return rows;
   }
 
   // ===========================

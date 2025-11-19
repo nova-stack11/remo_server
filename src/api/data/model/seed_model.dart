@@ -1,14 +1,14 @@
 class SeedModel {
-  final String id;
-  final String name;
-  final int growDuration;      // grow_duration
-  final int waterInterval;     // water_interval
-  final int stages;
-  final int reward;
-  final String seedImage;
-  final String stage1Image;
-  final String stage2Image;
-  final String stage3Image;
+  final String? id;
+  final String? name;
+  final int? growDuration;      // grow_duration
+  final int? waterInterval;     // water_interval
+  final int? stages;
+  final int? reward;
+  final String? seedImage;
+  final String? stage1Image;
+  final String? stage2Image;
+  final String? stage3Image;
 
   SeedModel({
     required this.id,
@@ -24,13 +24,14 @@ class SeedModel {
   });
 
   factory SeedModel.fromMap(Map<String, dynamic> map) {
+    print(">>>>>>> =${map}");
     return SeedModel(
       id: map['id'].toString(),
       name: map['name'].toString(),
-      growDuration: map['grow_duration'] as int,
-      waterInterval: map['water_interval'] as int,
-      stages: map['stages'] as int,
-      reward: map['reward'] as int,
+      growDuration: map['grow_duration'] as int?,
+      waterInterval: map['water_interval'] as int?,
+      stages: map['stages'] as int?,
+      reward: map['reward'] as int?,
       seedImage: map['seed_image']?.toString() ?? '',
       stage1Image: map['stage1_image']?.toString() ?? '',
       stage2Image: map['stage2_image']?.toString() ?? '',
@@ -54,7 +55,7 @@ class SeedModel {
   }
 
   /// tiện ích lấy ảnh theo stage
-  String getStageImage(int stageIndex) {
+  String? getStageImage(int stageIndex) {
     switch (stageIndex) {
       case 1:
         return stage1Image;

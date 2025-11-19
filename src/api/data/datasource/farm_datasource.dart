@@ -43,9 +43,16 @@ class FarmDataSourceImpl implements FarmDataSource {
   Future<List<Map<String, dynamic>>> getUserFarmPlants(String userId) async {
     final query = Sql.named(
       '''
-      SELECT * FROM user_farm_plants
-      WHERE user_id=@userId
-      ORDER BY y ASC, x ASC
+      SELECT 
+        ufp.*,
+        s.id AS seed_id,
+        s.name AS seed_name,
+        s.grow_duration AS seed_grow_duration,
+        s.water_interval AS seed_water_interval
+      FROM user_farm_plants ufp
+      JOIN seed s ON ufp.seed_id = s.id
+      WHERE ufp.user_id=@userId
+      ORDER BY ufp.y ASC, ufp.x ASC
       '''
     );
 

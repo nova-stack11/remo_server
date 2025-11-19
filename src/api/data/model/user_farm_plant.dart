@@ -4,8 +4,8 @@ class UserFarmPlant {
   final String seedId;
   final int x;
   final int y;
-  final String plantedAt;
-  final String lastWateredAt;
+  final String? plantedAt;
+  final String? lastWateredAt;
   final int stage;
   final bool isDead;
   final String? witheredAt;
@@ -30,11 +30,11 @@ class UserFarmPlant {
       x: map['x'] as int,
       y: map['y'] as int,
       seedId: map['seed_id'] as String,
-      plantedAt: map['planted_at'].toString(),
-      lastWateredAt: map['last_watered_at'].toString(),
+      plantedAt: map['planted_at'] as String?,
+      lastWateredAt: map['last_watered_at'] as String?,
       stage: map['stage'] as int,
       isDead: map['is_dead'] == true || map['is_dead'] == 1,
-      witheredAt: map['withered_at'].toString(),
+      witheredAt: map['withered_at'] as String?,
     );
   }
 

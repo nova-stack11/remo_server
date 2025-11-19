@@ -2,7 +2,7 @@ import 'package:postgres/postgres.dart';
 import '../../../database/database.dart';
 abstract class SeedDataSource {
   Future<List<Map<String, dynamic>>> getUserSeeds(String userId);
-  Future<Map<String, dynamic>?> getSeedById(String seedId);
+  Future<Map<String, dynamic>?> getSeedById(String? seedId);
 }
 
 /// Triển khai datasource cho farm, kết nối PostgreSQL qua DatabaseService
@@ -14,9 +14,14 @@ class SeedDataSourceImpl implements SeedDataSource {
   Future<List<Map<String, dynamic>>> getUserSeeds(String userId) async {
     final query = Sql.named(
         '''
-      SELECT * FROM user_seeds
-      WHERE user_id=@userId
-      ORDER BY seed_id ASC
+      SELECT 
+        us.*,
+        s.name AS seed_name,
+        s.seed_image AS seed_image
+      FROM user_seeds us
+      JOIN seed s ON us.seed_id = s.id
+      WHERE us.user_id=@userId
+      ORDER BY us.seed_id ASC
       '''
     );
 
@@ -28,7 +33,7 @@ class SeedDataSourceImpl implements SeedDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>?> getSeedById(String seedId) async {
+  Future<Map<String, dynamic>?> getSeedById(String? seedId) async {
     final query = Sql.named(
         '''
       SELECT * FROM seed

@@ -6,5 +6,6 @@ enum EventType {
   UPDATE_STATE,
   MOVE,
   CHANGE_MAP,
+  PLANT_TREE,
   LEAVE;
 }

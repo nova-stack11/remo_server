@@ -5,13 +5,16 @@ import 'package:shared_events/shared_events.dart';
 
 import '../../main.dart';
 import '../infrastructure/websocket/websocket_provider.dart';
+import 'components/garden_component.dart';
 import 'components/player.dart';
+// import 'events/PlantTreeEvent.dart';
 
 class GameServer extends Game {
   GameServer({required this.server, required super.maps}) {
     _registerTypes();
   }
-  static const tileSize = 16.0;
+
+  static const tileSize = 32.0;
 
   List<WebsocketClient> clients = [];
 
@@ -24,6 +27,24 @@ class GameServer extends Game {
       logger.i('JoinEvent: ${message.toMap()}');
       _joinPlayerInTheGame(client, message);
     });
+
+    client.on<PlantTreeEvent>(EventType.PLANT_TREE.name, (message) {
+      _onPlantTree(client, message);
+    });
+  }
+
+  void _onPlantTree(WebsocketClient client, PlantTreeEvent msg) {
+    final map = maps.firstWhere((m) => m.id == msg.mapId);
+
+    final tree = GardenComponent(
+      seedId: msg.seedId,
+      stage: 0,
+      position: GameVector(x: msg.x, y: msg.y),
+      size: GameVector.all(16),
+    );
+
+    map.add(tree);
+    requestUpdate();
   }
 
   void leaveClient(WebsocketClient client) {
@@ -91,7 +112,7 @@ class GameServer extends Game {
         id: client.id,
         name: message.name,
         position: position,
-        size: GameVector.all(16),
+        size: GameVector.all(32),
         life: 100,
         properties: {
           'skin': message.skin,
