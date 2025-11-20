@@ -1,22 +1,24 @@
 import '../../../constants/garden_plot_state.dart';
+import '../../../util/map_ext.dart';
 import '../../data/datasource/garden_datasource.dart';
 import '../../data/datasource/inventory_datasource.dart';
+import '../../data/datasource/seed_datasource.dart';
 import '../../data/datasource/user_seed_datasource.dart';
 
 class UserInitializerService {
   final GardenDatasource gardenDatasource;
-  final InventoryDatasource inventoryDatasource;
-  final UserSeedDatasource seedsDatasource;
+  final UserSeedDatasource userSeedsDatasource;
+  final SeedDataSource seedDataSource;
 
   UserInitializerService(
     this.gardenDatasource,
-    this.inventoryDatasource,
-    this.seedsDatasource,
+    this.userSeedsDatasource,
+    this.seedDataSource,
   );
 
   Future<void> initializeNewUser(String userId) async {
     await _initGarden(userId);
-    await _initInventory(userId);
+    await _initUserSeed(userId);
   }
 
   // ---------------------------------------------------------
@@ -46,26 +48,14 @@ class UserInitializerService {
     }
   }
 
-  // ---------------------------------------------------------
-  // 2) Inventory mặc định
-  // ---------------------------------------------------------
-  Future<void> _initInventory(String userId) async {
-    await inventoryDatasource.createInventory(userId: userId);
+  Future<void> _initUserSeed(String userId) async {
+    final seeds = await seedDataSource.getFirstSeeds(limit: 1);
 
-    // Tạo default tool
-    await inventoryDatasource.addItem(
-      userId: userId,
-      itemId: "starter_watering_can",
-      quantity: 1,
-    );
-
-    // Tặng 1 loại hạt đầu tiên
-    final firstSeed = await seedsDatasource.getFirstSeedId();
-    if (firstSeed != null) {
-      await inventoryDatasource.addItem(
+    for (final seed in seeds) {
+      await userSeedsDatasource.createUserSeed(
         userId: userId,
-        itemId: firstSeed,
-        quantity: 1,
+        seedId: seed.getOrNull('id') as String? ?? '',
+        quantity: 3,
       );
     }
   }

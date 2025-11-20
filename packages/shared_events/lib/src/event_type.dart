@@ -5,7 +5,9 @@ enum EventType {
   JOIN_MAP,
   UPDATE_STATE,
   MOVE,
-  CHANGE_MAP,
   PLANT_TREE,
+  WATER_TREE,
+  HARVEST_TREE,
+  REMOVE_TREE,
   LEAVE;
 }

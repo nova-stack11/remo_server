@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:bonfire_server/bonfire_server.dart';
@@ -7,11 +8,13 @@ import '../../main.dart';
 import '../infrastructure/websocket/websocket_provider.dart';
 import 'components/garden_component.dart';
 import 'components/player.dart';
-// import 'events/PlantTreeEvent.dart';
+import 'maps/home.dart';
+// import 'events/plant_tree_event.dart';
 
 class GameServer extends Game {
   GameServer({required this.server, required super.maps}) {
     _registerTypes();
+    _startFarmGrowLoop();
   }
 
   static const tileSize = 32.0;
@@ -22,15 +25,57 @@ class GameServer extends Game {
 
   void enterClient(WebsocketClient client) {
     clients.add(client);
-    logger.i('Client(${client.id}) Connected!');
-    client.on<JoinEvent>(EventType.JOIN.name, (message) {
-      logger.i('JoinEvent: ${message.toMap()}');
-      _joinPlayerInTheGame(client, message);
-    });
 
-    client.on<PlantTreeEvent>(EventType.PLANT_TREE.name, (message) {
-      _onPlantTree(client, message);
+    logger.i('Client(${client}) Connected!');
+    client
+      ..on<JoinEvent>(EventType.JOIN.name, (message) {
+        logger.i('JoinEvent: ${message.toMap()}');
+        _joinPlayerInTheGame(client, message);
+      })
+      ..on<PlantTreeEvent>(EventType.PLANT_TREE.name, (msg) {
+        _onPlantTree(client, msg);
+      })
+      ..on<WaterTreeEvent>(EventType.WATER_TREE.name, (msg) {
+        _onWaterTree(client, msg);
+      })
+      ..on<HarvestTreeEvent>(EventType.HARVEST_TREE.name, (msg) {
+        _onHarvestTree(client, msg);
+      })
+      ..on<RemoveTreeEvent>(EventType.REMOVE_TREE.name, (msg) {
+        _onRemoveTree(client, msg);
+      })
+      ..on<ChangeMapEvent>(EventType.CHANGE_MAP.name, (msg) {
+        print(">>>>>>>>>> CHANGE_MAP =${msg}");
+        _onChangeMap(client, msg);
+      });
+  }
+
+  void _createHomeMapIfNotExists(String userId) {
+    final mapId = "home_$userId";
+
+    if (maps.any((m) => m.id == mapId)) return;
+
+    final homeMap = HomeMap(id: mapId);
+    maps.add(homeMap);
+  }
+
+  void _startFarmGrowLoop() {
+    Timer.periodic(Duration(seconds: 10), (_) {
+      _updateFarmGrowth();
     });
+  }
+
+  void _updateFarmGrowth() {
+    for (final map in maps) {
+      for (final tree in map.components.whereType<GardenComponent>()) {
+        if (_shouldGrow(tree)) {
+          tree.stage++;
+          tree.wateredAt = null;
+
+          requestUpdate();
+        }
+      }
+    }
   }
 
   void _onPlantTree(WebsocketClient client, PlantTreeEvent msg) {
@@ -47,6 +92,88 @@ class GameServer extends Game {
     requestUpdate();
   }
 
+  void _onWaterTree(WebsocketClient client, WaterTreeEvent msg) {
+    final map = maps.firstWhere((m) => m.id == msg.mapId);
+
+    final tree = map.components.whereType<GardenComponent>().firstWhere(
+          (t) => t.position.x == msg.x && t.position.y == msg.y,
+        );
+
+    if (tree == null) return;
+
+    tree.wateredAt = DateTime.now();
+    requestUpdate();
+  }
+
+  void _onHarvestTree(WebsocketClient client, HarvestTreeEvent msg) {
+    final map = maps.firstWhere((m) => m.id == msg.mapId);
+
+    final tree = map.components.whereType<GardenComponent>().firstWhere(
+          (t) => t.position.x == msg.x && t.position.y == msg.y,
+        );
+
+    if (tree == null) return;
+    if (tree.stage < 3) return;
+
+    // reward item here
+    // userRepo.addItem(client.id, tree.seedId);
+
+    tree.removeFromParent();
+    requestUpdate();
+  }
+
+  void _onRemoveTree(WebsocketClient client, RemoveTreeEvent msg) {
+    final map = maps.firstWhere((m) => m.id == msg.mapId);
+
+    final tree = map.components.whereType<GardenComponent>().firstWhere(
+          (t) => t.position.x == msg.x && t.position.y == msg.y,
+        );
+
+    if (tree == null) return;
+
+    tree.removeFromParent();
+    requestUpdate();
+  }
+
+  void _onChangeMap(WebsocketClient client, ChangeMapEvent msg) {
+    final targetMapId = msg.mapId;
+
+    // ensure target map exists
+    if (!maps.any((m) => m.id == targetMapId)) {
+      maps.add(HomeMap(id: targetMapId));
+    }
+
+    final newMap = maps.firstWhere((m) => m.id == targetMapId);
+
+    // find the existing player object
+    Player? player;
+    for (final map in maps) {
+      try {
+        player = map.components.whereType<Player>().firstWhere(
+          (p) => p.id == client.id,
+        );
+        break;
+      } catch (_) {}
+    }
+
+    if (player == null) {
+      return;
+    }
+
+    // remove from old maps
+    for (final map in maps) {
+      map.components.whereType<Player>()
+        .where((p) => p.id == client.id)
+        .forEach((p) => p.removeFromParent());
+    }
+
+    // add to new map
+    newMap.add(player);
+
+    // use existing onPlayerChangeMap to send event
+    onPlayerChangeMap(player, newMap);
+  }
+
   void leaveClient(WebsocketClient client) {
     clients.remove(client);
     for (final map in maps) {
@@ -57,6 +184,13 @@ class GameServer extends Game {
     }
     requestUpdate();
     logger.i('Client(${client.id}) Disconnected!');
+  }
+
+  bool _shouldGrow(GardenComponent tree) {
+    if (tree.stage >= 3) return false;
+    if (tree.wateredAt == null) return false;
+
+    return DateTime.now().difference(tree.wateredAt!).inMinutes >= 2;
   }
 
   @override
@@ -106,6 +240,8 @@ class GameServer extends Game {
       y: 11 * tileSize,
     );
 
+    _createHomeMapIfNotExists(message.userId);
+
     // Adds Player
     final player = Player(
       state: ComponentStateModel(
@@ -121,7 +257,9 @@ class GameServer extends Game {
       client: client,
     );
 
-    final initialMap = maps[0]..add(player);
+    final initialMap = maps.firstWhere(
+      (m) => m.id == "home_${message.userId}",
+    )..add(player);
 
     // send ACK to client that request join.
     client.send(
@@ -177,6 +315,36 @@ class GameServer extends Game {
         TypeAdapter(
           toMap: (type) => type.toMap(),
           fromMap: MoveEvent.fromMap,
+        ),
+      )
+      ..registerType<PlantTreeEvent>(
+        TypeAdapter(
+          toMap: (e) => e.toMap(),
+          fromMap: PlantTreeEvent.fromMap,
+        ),
+      )
+      ..registerType<WaterTreeEvent>(
+        TypeAdapter(
+          toMap: (e) => e.toMap(),
+          fromMap: WaterTreeEvent.fromMap,
+        ),
+      )
+      ..registerType<HarvestTreeEvent>(
+        TypeAdapter(
+          toMap: (e) => e.toMap(),
+          fromMap: HarvestTreeEvent.fromMap,
+        ),
+      )
+      ..registerType<ChangeMapEvent>(
+        TypeAdapter(
+          toMap: (e) => e.toMap(),
+          fromMap: ChangeMapEvent.fromMap,
+        ),
+      )
+      ..registerType<RemoveTreeEvent>(
+        TypeAdapter(
+          toMap: (e) => e.toMap(),
+          fromMap: RemoveTreeEvent.fromMap,
         ),
       );
   }

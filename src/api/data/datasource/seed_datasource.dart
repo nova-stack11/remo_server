@@ -3,6 +3,7 @@ import '../../../database/database.dart';
 abstract class SeedDataSource {
   Future<List<Map<String, dynamic>>> getUserSeeds(String userId);
   Future<Map<String, dynamic>?> getSeedById(String? seedId);
+  Future<List<Map<String, dynamic>>> getFirstSeeds({int limit = 1});
 }
 
 /// Triển khai datasource cho farm, kết nối PostgreSQL qua DatabaseService
@@ -48,5 +49,24 @@ class SeedDataSourceImpl implements SeedDataSource {
 
     if (result.isEmpty) return null;
     return result.first.toColumnMap();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getFirstSeeds({int limit = 1}) async {
+    final query = Sql.named(
+      '''
+      SELECT *
+      FROM seed
+      ORDER BY id ASC
+      LIMIT @limit
+      '''
+    );
+
+    final result = await db.connection.execute(
+      query,
+      parameters: {'limit': limit},
+    );
+
+    return result.map((row) => row.toColumnMap()).toList();
   }
 }

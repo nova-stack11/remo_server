@@ -9,6 +9,12 @@ abstract class UserSeedDatasource {
     required int plotState,
   });
 
+  Future<void> createUserSeed({
+    required String userId,
+    required String seedId,
+    required int quantity,
+  });
+
   Future<void> updateGardenPlot({
     required String userId,
     required String plotCode,
@@ -197,5 +203,27 @@ class UserSeedDatasourceImpl implements UserSeedDatasource {
 
     if (res.isEmpty) return null;
     return res.first.toColumnMap()['id'] as String;
+  }
+  @override
+  Future<void> createUserSeed({
+    required String userId,
+    required String seedId,
+    required int quantity,
+  }) async {
+    final query = Sql.named('''
+      INSERT INTO user_seeds (user_id, seed_id, quantity)
+      VALUES (@user_id, @seed_id, @quantity)
+      ON CONFLICT (user_id, seed_id)
+      DO UPDATE SET quantity = user_seeds.quantity + EXCLUDED.quantity
+    ''');
+
+    await db.connection.execute(
+      query,
+      parameters: {
+        'user_id': userId,
+        'seed_id': seedId,
+        'quantity': quantity,
+      },
+    );
   }
 }

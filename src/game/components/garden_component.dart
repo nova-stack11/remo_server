@@ -7,19 +7,25 @@ class GardenComponent extends PositionedGameComponent {
     required super.size,
     required this.seedId,
     this.stage = 0,
+    this.wateredAt,
+    this.plantedAt,
   });
 
   final String seedId;
   int stage;
+  DateTime? plantedAt;
+  DateTime? wateredAt;
 
   @override
   Map<String, dynamic> toMap() {
     return {
       'type': 'garden',
-      'position': position.toMap(),
-      'size': size.toMap(),
       'seedId': seedId,
       'stage': stage,
+      'position': position.toMap(),
+      'size': size.toMap(),
+      'plantedAt': plantedAt?.toIso8601String(),
+      'wateredAt': wateredAt?.toIso8601String(),
     };
   }
 
@@ -27,8 +33,14 @@ class GardenComponent extends PositionedGameComponent {
     return GardenComponent(
       seedId: map['seedId'] as String? ?? '',
       stage: map['stage'] as int? ?? 0,
-      position: GameVector.fromMap(map['position'] as Map<String, dynamic>),
-      size: GameVector.fromMap(map['size'] as Map<String, dynamic>),
+      plantedAt: (map['plantedAt'] != null)
+          ? DateTime.parse(map['plantedAt'] as String? ?? '')
+          : null,
+      wateredAt: (map['wateredAt'] != null)
+          ? DateTime.parse(map['wateredAt'] as String? ?? '')
+          : null,
+      position: GameVector.fromMap(map['position'] as Map<String, dynamic>? ?? {}),
+      size: GameVector.fromMap(map['size']as Map<String, dynamic>? ?? {}),
     );
   }
 }
