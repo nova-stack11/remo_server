@@ -44,10 +44,7 @@ class GameServer extends Game {
       ..on<RemoveTreeEvent>(EventType.REMOVE_TREE.name, (msg) {
         _onRemoveTree(client, msg);
       })
-      ..on<ChangeMapEvent>(EventType.CHANGE_MAP.name, (msg) {
-        print(">>>>>>>>>> CHANGE_MAP =${msg}");
-        _onChangeMap(client, msg);
-      });
+    ;
   }
 
   void _createHomeMapIfNotExists(String userId) {
@@ -133,45 +130,6 @@ class GameServer extends Game {
 
     tree.removeFromParent();
     requestUpdate();
-  }
-
-  void _onChangeMap(WebsocketClient client, ChangeMapEvent msg) {
-    final targetMapId = msg.mapId;
-
-    // ensure target map exists
-    if (!maps.any((m) => m.id == targetMapId)) {
-      maps.add(HomeMap(id: targetMapId));
-    }
-
-    final newMap = maps.firstWhere((m) => m.id == targetMapId);
-
-    // find the existing player object
-    Player? player;
-    for (final map in maps) {
-      try {
-        player = map.components.whereType<Player>().firstWhere(
-          (p) => p.id == client.id,
-        );
-        break;
-      } catch (_) {}
-    }
-
-    if (player == null) {
-      return;
-    }
-
-    // remove from old maps
-    for (final map in maps) {
-      map.components.whereType<Player>()
-        .where((p) => p.id == client.id)
-        .forEach((p) => p.removeFromParent());
-    }
-
-    // add to new map
-    newMap.add(player);
-
-    // use existing onPlayerChangeMap to send event
-    onPlayerChangeMap(player, newMap);
   }
 
   void leaveClient(WebsocketClient client) {
