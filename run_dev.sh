@@ -1,3 +1,5 @@
+cd /Users/admin/Documents/flutter-code/remo/bonfire_multiplayer-main/game_server
+
 DATABASE_HOST=localhost \
 DATABASE_PORT=5432 \
 DATABASE_NAME=game_db \
