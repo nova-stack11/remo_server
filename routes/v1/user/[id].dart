@@ -2,6 +2,7 @@ import 'package:dart_frog/dart_frog.dart';
 
 import '../../../src/api/data/repositories/user_repository.dart';
 import '../../../src/infrastructure/controller/api_response_factory.dart';
+import '../../../src/util/string_helper.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   final repository = context.read<UserRepository>();
@@ -9,7 +10,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
   switch (context.request.method) {
     case HttpMethod.put:
       final body = await context.request.json() as Map<String, dynamic>;
-      body['id'] = id;
+      body['id'] = id.sanitized;
 
       final result = await repository.updateProfile(body: body);
 

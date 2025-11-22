@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:path/path.dart' as p;
 import '../../src/infrastructure/controller/api_response_factory.dart';
+import '../../src/util/string_helper.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   try {
@@ -10,8 +11,8 @@ Future<Response> onRequest(RequestContext context) async {
       return ApiResponseFactory.methodNotAllow();
     }
     // Validate API key from header
-    final apiKey = context.request.headers['x-api-key'];
-    final validApiKey = Platform.environment['ASSET_API_KEY'];
+    final apiKey = context.request.headers['x-api-key']?.sanitized;
+    final validApiKey = Platform.environment['ASSET_API_KEY']?.sanitized;
 
     if (apiKey == null || apiKey != validApiKey) {
       return ApiResponseFactory.error(

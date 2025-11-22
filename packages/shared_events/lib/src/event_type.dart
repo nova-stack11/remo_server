@@ -3,6 +3,7 @@
 enum EventType {
   JOIN,
   JOIN_MAP,
+  CHANGE_MAP,
   UPDATE_STATE,
   MOVE,
   PLANT_TREE,

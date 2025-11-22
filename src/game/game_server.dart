@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:bonfire_server/bonfire_server.dart';
 import 'package:shared_events/shared_events.dart';
+import 'package:collection/collection.dart';
 
 import '../../main.dart';
 import '../infrastructure/websocket/websocket_provider.dart';
@@ -17,7 +18,7 @@ class GameServer extends Game {
     _startFarmGrowLoop();
   }
 
-  static const tileSize = 32.0;
+  static const tileSize = 16.0;
 
   List<WebsocketClient> clients = [];
 
@@ -32,6 +33,27 @@ class GameServer extends Game {
         logger.i('JoinEvent: ${message.toMap()}');
         _joinPlayerInTheGame(client, message);
       })
+      ..on<ChangeMapEvent>(EventType.CHANGE_MAP.name, (msg) {
+        // Find the player by userId
+        final player = maps
+            .expand((m) => m.components.whereType<Player>())
+            .firstWhereOrNull((p) => p.id == msg.userId);
+
+        if (player == null) {
+          logger.e("⚠️ Player with id ${msg.userId} not found for ChangeMap");
+          return;
+        }
+
+        // Ensure the map exists, create home if needed
+        _createHomeMapIfNotExists(msg.mapId);
+
+        // Find target map
+        final newMap = maps.firstWhere((m) => m.id == msg.mapId);
+
+        // Execute map change
+        print(">>>>>>>>> player =${player.id}, =${newMap.id}");
+        changeMap(player, newMap.id, player.state.position);
+      })
       ..on<PlantTreeEvent>(EventType.PLANT_TREE.name, (msg) {
         _onPlantTree(client, msg);
       })
@@ -43,13 +65,10 @@ class GameServer extends Game {
       })
       ..on<RemoveTreeEvent>(EventType.REMOVE_TREE.name, (msg) {
         _onRemoveTree(client, msg);
-      })
-    ;
+      });
   }
 
-  void _createHomeMapIfNotExists(String userId) {
-    final mapId = "home_$userId";
-
+  void _createHomeMapIfNotExists(String mapId) {
     if (maps.any((m) => m.id == mapId)) return;
 
     final homeMap = HomeMap(id: mapId);
@@ -137,7 +156,7 @@ class GameServer extends Game {
     for (final map in maps) {
       map.components
           .whereType<Player>()
-          .where((element) => element.id == client.id)
+          .where((element) => element.client.id == client.id)
           .forEach((element) => element.removeFromParent());
     }
     requestUpdate();
@@ -188,7 +207,7 @@ class GameServer extends Game {
 
     if (components
         .whereType<Player>()
-        .any((element) => element.id == client.id)) {
+        .any((element) => element.id == message.userId)) {
       return;
     }
 
@@ -198,12 +217,13 @@ class GameServer extends Game {
       y: 11 * tileSize,
     );
 
-    _createHomeMapIfNotExists(message.userId);
+    final mapId = "home_${message.userId}";
+    _createHomeMapIfNotExists(mapId);
 
     // Adds Player
     final player = Player(
       state: ComponentStateModel(
-        id: client.id,
+        id: message.userId,
         name: message.name,
         position: position,
         size: GameVector.all(32),
@@ -232,6 +252,7 @@ class GameServer extends Game {
   }
 
   void onPlayerChangeMap(GamePlayer player, GameMap map) {
+    print(">>>>>>> change 2 =${map.toModel().toMap()}");
     player.send(
       EventType.JOIN_MAP.name,
       JoinMapEvent(
@@ -251,7 +272,12 @@ class GameServer extends Game {
           fromMap: JoinEvent.fromMap,
         ),
       )
-      ..registerType<JoinMapEvent>(
+      ..registerType<ChangeMapEvent>(
+        TypeAdapter(
+          toMap: (type) => type.toMap(),
+          fromMap: ChangeMapEvent.fromMap,
+        ),
+      )    ..registerType<JoinMapEvent>(
         TypeAdapter(
           toMap: (type) => type.toMap(),
           fromMap: JoinMapEvent.fromMap,

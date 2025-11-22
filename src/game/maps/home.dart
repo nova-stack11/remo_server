@@ -8,8 +8,8 @@ class HomeMap extends GameMap with GameRef<GameServer> {
   HomeMap({
     required super.id,
     super.name = 'home',
-    super.path = 'maps/map3/map1.tmj',
-    // super.path = 'maps/map1/florest.tmj',
+    // super.path = 'maps/map3/map1.tmj',
+    super.path = 'maps/map1/florest.tmj',
   });
 
   @override

@@ -17,7 +17,9 @@ class UserDataSourceImpl implements UserDataSource {
     final result = await db.connection.execute(query, parameters: {'username': username});
 
     if (result.isEmpty) return null;
-    return result.first.toColumnMap();
+    final map = result.first.toColumnMap();
+    map.remove('password');
+    return map;
   }
   @override
   Future<Map<String, dynamic>?> getUserById({required String id}) async {
@@ -25,7 +27,9 @@ class UserDataSourceImpl implements UserDataSource {
     final result = await db.connection.execute(query, parameters: {'id': id});
 
     if (result.isEmpty) return null;
-    return result.first.toColumnMap();
+    final map = result.first.toColumnMap();
+    map.remove('password');
+    return map;
   }
 
 }

@@ -3,6 +3,7 @@ import 'package:dart_frog/dart_frog.dart';
 import '../../../../src/api/data/repositories/farm_repository.dart';
 import '../../../../src/infrastructure/controller/api_response_factory.dart';
 import '../../../../src/infrastructure/extenssions/request_context_ext.dart';
+import '../../../../src/util/string_helper.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   final repository = context.read<FarmRepository>();
@@ -15,7 +16,7 @@ Future<Response> onRequest(RequestContext context) async {
         final tileX = body['tileX'] as int?;
         final tileY = body['tileY'] as int?;
         final seedId = body['seedId'] as int?;
-        final userId = body['id'] as String?;
+        final userId = (body['id'] as String?)?.sanitized;
         if (userId == null) {
           return ApiResponseFactory.error(
             message: 'id là bắt buộc',

@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:uuid/uuid.dart';
 
 import '../../../infrastructure/controller/rest_controller.dart';
 import '../../../util/map_ext.dart';
+import '../../../util/string_helper.dart';
 import '../../service/token_service.dart';
 import '../../service/user/user_initializer_service.dart';
 import '../datasource/datasource.dart';
@@ -51,7 +54,8 @@ class UserRepository {
 
       // 🔹 Kiểm tra password
       final dbPassword = userMap.getOrNull('password')?.toString() ?? '';
-      if (dbPassword != password) {
+      final decrypted = dbPassword.decrypted;
+      if (decrypted != password) {
         return Error(WrongPasswordException());
       }
 
@@ -117,7 +121,7 @@ class UserRepository {
       document: UserModel.document,
       data: {
         'username': login,
-        'password': password,
+        'password': password.encrypted,
       },
     );
 
@@ -147,7 +151,7 @@ class UserRepository {
       final updatedUserData = {
         'id': id,
         'username': username,
-        'password': password,
+        // 'password': password.encrypted,
         'token': accessToken,
         'refresh_token': refreshToken,
       };

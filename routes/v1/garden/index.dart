@@ -6,6 +6,7 @@ import '../../../src/extension/request_context_ext.dart';
 import '../../../src/infrastructure/controller/api_response_factory.dart';
 import '../../../src/infrastructure/extenssions/request_context_ext.dart';
 import '../../../src/constants/garden_plot_state.dart';
+import '../../../src/util/string_helper.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   final gardenRepo = context.read<GardenRepository>();
@@ -55,7 +56,7 @@ Future<Response> _handleUpdateState(
 
   final x = body['x'] as int?;
   final y = body['y'] as int?;
-  final state = body['state'] as String?;
+  final state = (body['state'] as String?)?.sanitized;
 
   if (userId == null || x == null || y == null || state == null) {
     return ApiResponseFactory.error(
