@@ -12,7 +12,6 @@ extension MyGameExtension on Game {
         ..removeFromParent();
 
       map.add(player);
-      print(">>>>>>> change 1");
       onPlayerChangeMap(player, map);
       return true;
     } catch (e) {

@@ -20,10 +20,10 @@ class JoinEvent {
 
   factory JoinEvent.fromMap(Map<String, dynamic> map) {
     return JoinEvent(
-      userId: map['userId'] as String,
+      userId: map['userId'] ?? '',
       name: map['name'] as String,
       skin: map['skin'] as String,
-      map: map['map'] as String,
+      map: map['map'] ?? '',
     );
   }
 }

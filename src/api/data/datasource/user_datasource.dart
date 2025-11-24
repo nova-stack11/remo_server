@@ -2,7 +2,7 @@ import 'package:postgres/postgres.dart';
 import '../../../database/database.dart';
 
 abstract class UserDataSource {
-  Future<Map<String, dynamic>?> getUserByUsername({required String username});
+  Future<Map<String, dynamic>?> getUserByUsername({required String username, bool removePassword = true});
   Future<Map<String, dynamic>?> getUserById({required String id});
 }
 
@@ -12,13 +12,15 @@ class UserDataSourceImpl implements UserDataSource {
   final DatabaseService db;
 
   @override
-  Future<Map<String, dynamic>?> getUserByUsername({required String username}) async {
+  Future<Map<String, dynamic>?> getUserByUsername({required String username, bool removePassword = true}) async {
     final query = Sql.named('SELECT * FROM users WHERE username=@username LIMIT 1');
     final result = await db.connection.execute(query, parameters: {'username': username});
 
     if (result.isEmpty) return null;
     final map = result.first.toColumnMap();
-    map.remove('password');
+    if (removePassword) {
+      map.remove('password');
+    }
     return map;
   }
   @override

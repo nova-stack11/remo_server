@@ -3,14 +3,13 @@ import 'dart:math';
 
 import 'package:bonfire_server/bonfire_server.dart';
 import 'package:shared_events/shared_events.dart';
-import 'package:collection/collection.dart';
 
 import '../../main.dart';
 import '../infrastructure/websocket/websocket_provider.dart';
 import 'components/garden_component.dart';
 import 'components/player.dart';
-import 'maps/home.dart';
-// import 'events/plant_tree_event.dart';
+import 'maps/florest.dart';
+import 'package:collection/collection.dart';
 
 class GameServer extends Game {
   GameServer({required this.server, required super.maps}) {
@@ -26,33 +25,33 @@ class GameServer extends Game {
 
   void enterClient(WebsocketClient client) {
     clients.add(client);
-
-    logger.i('Client(${client}) Connected!');
+    logger.i('Client(${client.id}) Connected!');
     client
       ..on<JoinEvent>(EventType.JOIN.name, (message) {
         logger.i('JoinEvent: ${message.toMap()}');
         _joinPlayerInTheGame(client, message);
       })
-      ..on<ChangeMapEvent>(EventType.CHANGE_MAP.name, (msg) {
-        // Find the player by userId
+      ..on<MyChangeMapEvent>(EventType.CHANGE_MAP.name, (message) {
+        // Find player by message.userId
         final player = maps
             .expand((m) => m.components.whereType<Player>())
-            .firstWhereOrNull((p) => p.id == msg.userId);
-
+            .firstWhereOrNull(
+              (p) => p.id == message.userId,
+            );
         if (player == null) {
-          logger.e("⚠️ Player with id ${msg.userId} not found for ChangeMap");
+          logger.e("Player with id ${message.userId} not found for CHANGE_MAP");
           return;
         }
 
-        // Ensure the map exists, create home if needed
-        _createHomeMapIfNotExists(msg.mapId);
+        // Create or get target map
+        final targetMap = getOrCreateMap(message.mapId);
 
-        // Find target map
-        final newMap = maps.firstWhere((m) => m.id == msg.mapId);
-
-        // Execute map change
-        print(">>>>>>>>> player =${player.id}, =${newMap.id}");
-        changeMap(player, newMap.id, player.state.position);
+        // Change map
+        changeMap(
+          player,
+          targetMap.id,
+          player.state.position,
+        );
       })
       ..on<PlantTreeEvent>(EventType.PLANT_TREE.name, (msg) {
         _onPlantTree(client, msg);
@@ -66,13 +65,6 @@ class GameServer extends Game {
       ..on<RemoveTreeEvent>(EventType.REMOVE_TREE.name, (msg) {
         _onRemoveTree(client, msg);
       });
-  }
-
-  void _createHomeMapIfNotExists(String mapId) {
-    if (maps.any((m) => m.id == mapId)) return;
-
-    final homeMap = HomeMap(id: mapId);
-    maps.add(homeMap);
   }
 
   void _startFarmGrowLoop() {
@@ -191,23 +183,23 @@ class GameServer extends Game {
     }
   }
 
-  void _joinPlayerInTheGame(WebsocketClient client, JoinEvent message) async {
-    // ✅ Check if user exists before joining
-    // final userRepo = injector.read<IUserRepository>();
-    // final user = await userRepo.getUserById(client.id);
-    //
-    // if (user == null) {
-    //   client.send(
-    //     EventType.ERROR.name,
-    //     {'error': 'User not found, cannot join game'},
-    //   );
-    //   logger.w('❌ User(${client.id}) not found in DB — join denied.');
-    //   return;
-    // }
+  GameMap getOrCreateMap(String id) {
+    return maps.firstWhere(
+      (m) => m.id == id,
+      orElse: () {
+        final newMap = FlorestMap(id: id);
+        maps.add(newMap);
+        add(newMap);
+        newMap.load();
+        return newMap;
+      },
+    );
+  }
 
+  void _joinPlayerInTheGame(WebsocketClient client, JoinEvent message) {
     if (components
         .whereType<Player>()
-        .any((element) => element.id == message.userId)) {
+        .any((element) => element.id == message.name)) {
       return;
     }
 
@@ -216,17 +208,14 @@ class GameServer extends Game {
       x: (3 + Random().nextInt(3)) * tileSize,
       y: 11 * tileSize,
     );
-
-    final mapId = "home_${message.userId}";
-    _createHomeMapIfNotExists(mapId);
-
     // Adds Player
+
     final player = Player(
       state: ComponentStateModel(
-        id: message.userId,
+        id: message.name,
         name: message.name,
         position: position,
-        size: GameVector.all(32),
+        size: GameVector.all(16),
         life: 100,
         properties: {
           'skin': message.skin,
@@ -235,9 +224,12 @@ class GameServer extends Game {
       client: client,
     );
 
-    final initialMap = maps.firstWhere(
-      (m) => m.id == "home_${message.userId}",
-    )..add(player);
+    // Determine target map id
+    // final mapId = 'florestId';
+
+    final mapId = 'home_${message.name}';
+
+    final initialMap = getOrCreateMap(mapId)..add(player);
 
     // send ACK to client that request join.
     client.send(
@@ -252,7 +244,6 @@ class GameServer extends Game {
   }
 
   void onPlayerChangeMap(GamePlayer player, GameMap map) {
-    print(">>>>>>> change 2 =${map.toModel().toMap()}");
     player.send(
       EventType.JOIN_MAP.name,
       JoinMapEvent(
@@ -272,12 +263,13 @@ class GameServer extends Game {
           fromMap: JoinEvent.fromMap,
         ),
       )
-      ..registerType<ChangeMapEvent>(
+      ..registerType<MyChangeMapEvent>(
         TypeAdapter(
           toMap: (type) => type.toMap(),
-          fromMap: ChangeMapEvent.fromMap,
+          fromMap: MyChangeMapEvent.fromMap,
         ),
-      )    ..registerType<JoinMapEvent>(
+      )
+      ..registerType<JoinMapEvent>(
         TypeAdapter(
           toMap: (type) => type.toMap(),
           fromMap: JoinMapEvent.fromMap,
@@ -317,12 +309,6 @@ class GameServer extends Game {
         TypeAdapter(
           toMap: (e) => e.toMap(),
           fromMap: HarvestTreeEvent.fromMap,
-        ),
-      )
-      ..registerType<ChangeMapEvent>(
-        TypeAdapter(
-          toMap: (e) => e.toMap(),
-          fromMap: ChangeMapEvent.fromMap,
         ),
       )
       ..registerType<RemoveTreeEvent>(

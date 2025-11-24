@@ -47,7 +47,7 @@ class UserRepository {
     String password,
   ) async {
     try {
-      final userMap = await userDataSource.getUserByUsername(username: username);
+      final userMap = await userDataSource.getUserByUsername(username: username, removePassword: false);
       if (userMap == null) {
         return Error(NotFoundUserException());
       }

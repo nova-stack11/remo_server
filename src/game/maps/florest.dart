@@ -8,7 +8,6 @@ class FlorestMap extends GameMap with GameRef<GameServer> {
   FlorestMap({
     super.id = 'florestId',
     super.name = 'florest',
-    // super.path = 'maps/map3/map1.tmj',
     super.path = 'maps/map1/florest.tmj',
   });
 

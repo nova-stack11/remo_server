@@ -7,9 +7,6 @@ import 'package:bonfire_socket_server/bonfire_socket_server.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 import 'src/game/game_server.dart';
-import 'src/game/maps/desert.dart';
-import 'src/game/maps/florest.dart';
-import 'src/game/maps/home.dart';
 import 'src/infrastructure/logger/logger_logger.dart';
 import 'src/infrastructure/logger/logger_provider.dart';
 import 'src/infrastructure/websocket/bonfire_websocket.dart';
@@ -33,7 +30,7 @@ Future<HttpServer> run(Handler handler, InternetAddress ip, int port) async {
     maps: [
       // HomeMap(),
       // FlorestMap(),
-      DesertMap(),
+      // DesertMap(),
     ],
   );
 
