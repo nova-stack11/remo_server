@@ -32,26 +32,7 @@ class GameServer extends Game {
         _joinPlayerInTheGame(client, message);
       })
       ..on<MyChangeMapEvent>(EventType.CHANGE_MAP.name, (message) {
-        // Find player by message.userId
-        final player = maps
-            .expand((m) => m.components.whereType<Player>())
-            .firstWhereOrNull(
-              (p) => p.id == message.userId,
-            );
-        if (player == null) {
-          logger.e("Player with id ${message.userId} not found for CHANGE_MAP");
-          return;
-        }
-
-        // Create or get target map
-        final targetMap = getOrCreateMap(message.mapId);
-
-        // Change map
-        changeMap(
-          player,
-          targetMap.id,
-          player.state.position,
-        );
+        _playerChangeMap(message);
       })
       ..on<PlantTreeEvent>(EventType.PLANT_TREE.name, (msg) {
         _onPlantTree(client, msg);
@@ -71,6 +52,28 @@ class GameServer extends Game {
     Timer.periodic(Duration(seconds: 10), (_) {
       _updateFarmGrowth();
     });
+  }
+
+  void _playerChangeMap(MyChangeMapEvent message) {
+    final player = maps
+        .expand((m) => m.components.whereType<Player>())
+        .firstWhereOrNull(
+          (p) => p.id == message.userId,
+    );
+    if (player == null) {
+      logger.e("Player with id ${message.userId} not found for CHANGE_MAP");
+      return;
+    }
+
+    // Create or get target map
+    final targetMap = getOrCreateMap(message.mapId);
+
+    // Change map
+    changeMap(
+      player,
+      targetMap.id,
+      player.state.position,
+    );
   }
 
   void _updateFarmGrowth() {
@@ -199,7 +202,7 @@ class GameServer extends Game {
   void _joinPlayerInTheGame(WebsocketClient client, JoinEvent message) {
     if (components
         .whereType<Player>()
-        .any((element) => element.id == message.name)) {
+        .any((element) => element.id == message.userId)) {
       return;
     }
 
@@ -212,7 +215,7 @@ class GameServer extends Game {
 
     final player = Player(
       state: ComponentStateModel(
-        id: message.name,
+        id: message.userId,
         name: message.name,
         position: position,
         size: GameVector.all(16),
@@ -224,12 +227,7 @@ class GameServer extends Game {
       client: client,
     );
 
-    // Determine target map id
-    // final mapId = 'florestId';
-
-    final mapId = 'home_${message.name}';
-
-    final initialMap = getOrCreateMap(mapId)..add(player);
+    final initialMap = getOrCreateMap(message.map)..add(player);
 
     // send ACK to client that request join.
     client.send(
