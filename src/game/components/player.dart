@@ -13,8 +13,8 @@ class Player extends GamePlayer
     _listenMove();
     setupCollision(
       RectangleShape(
-        GameVector.all(16),
-        position: GameVector(x: 8, y: 16),
+        GameVector.all(32),
+        position: GameVector(x: 16, y: 32),
       ),
     );
   }

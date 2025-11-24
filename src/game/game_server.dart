@@ -2,14 +2,14 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:bonfire_server/bonfire_server.dart';
+import 'package:collection/collection.dart';
 import 'package:shared_events/shared_events.dart';
 
 import '../../main.dart';
 import '../infrastructure/websocket/websocket_provider.dart';
 import 'components/garden_component.dart';
 import 'components/player.dart';
-import 'maps/florest.dart';
-import 'package:collection/collection.dart';
+import 'maps/home.dart';
 
 class GameServer extends Game {
   GameServer({required this.server, required super.maps}) {
@@ -17,7 +17,7 @@ class GameServer extends Game {
     _startFarmGrowLoop();
   }
 
-  static const tileSize = 16.0;
+  static const tileSize = 32.0;
 
   List<WebsocketClient> clients = [];
 
@@ -55,11 +55,10 @@ class GameServer extends Game {
   }
 
   void _playerChangeMap(MyChangeMapEvent message) {
-    final player = maps
-        .expand((m) => m.components.whereType<Player>())
-        .firstWhereOrNull(
-          (p) => p.id == message.userId,
-    );
+    final player =
+        maps.expand((m) => m.components.whereType<Player>()).firstWhereOrNull(
+              (p) => p.id == message.userId,
+            );
     if (player == null) {
       logger.e("Player with id ${message.userId} not found for CHANGE_MAP");
       return;
@@ -190,7 +189,7 @@ class GameServer extends Game {
     return maps.firstWhere(
       (m) => m.id == id,
       orElse: () {
-        final newMap = FlorestMap(id: id);
+        final newMap = HomeMap(id: id);
         maps.add(newMap);
         add(newMap);
         newMap.load();

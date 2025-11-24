@@ -9,7 +9,7 @@ class MyEnemy extends GameNpc
     setupCollision(
       RectangleShape(
         GameVector.all(16),
-        position: GameVector(x: 8, y: 16),
+        position: GameVector(x: 16, y: 32),
       ),
     );
   }
