@@ -6,6 +6,8 @@ import 'package:bonfire_server/bonfire_server.dart';
 import 'package:bonfire_socket_server/bonfire_socket_server.dart';
 import 'package:dart_frog/dart_frog.dart';
 
+import 'app_injector.dart';
+import 'src/database/database.dart';
 import 'src/game/game_server.dart';
 import 'src/infrastructure/logger/logger_logger.dart';
 import 'src/infrastructure/logger/logger_provider.dart';
@@ -18,6 +20,10 @@ final LoggerProvider logger = LoggerLogger();
 BonfireWebsocket? server;
 
 Future<HttpServer> run(Handler handler, InternetAddress ip, int port) async {
+  final dbService = DatabaseService();
+  await dbService.connect();
+  await AppInject.I.init(dbService);
+
   if (server == null) {
     server = BonfireWebsocket();
     await server!.init(

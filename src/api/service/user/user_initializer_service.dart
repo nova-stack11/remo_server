@@ -1,4 +1,4 @@
-import '../../../constants/garden_plot_state.dart';
+import '../../../game/state/garden_plot_state.dart';
 import '../../../util/map_ext.dart';
 import '../../data/datasource/garden_datasource.dart';
 import '../../data/datasource/inventory_datasource.dart';

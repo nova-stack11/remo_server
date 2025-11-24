@@ -33,3 +33,8 @@ extension StringSanitizedExtension on String? {
         .replaceAll("*/", "");
   }
 }
+
+extension StringOrEmptyExtension on String? {
+  /// Returns the string if not null, otherwise returns empty string.
+  String orEmpty() => this ?? "";
+}

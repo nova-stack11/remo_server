@@ -5,17 +5,23 @@ import 'package:bonfire_server/bonfire_server.dart';
 import 'package:collection/collection.dart';
 import 'package:shared_events/shared_events.dart';
 
+import '../../app_injector.dart';
 import '../../main.dart';
+import '../api/data/repositories/garden_repository.dart';
 import '../infrastructure/websocket/websocket_provider.dart';
+import '../util/string_helper.dart';
 import 'components/garden_component.dart';
 import 'components/player.dart';
 import 'maps/home.dart';
 
 class GameServer extends Game {
   GameServer({required this.server, required super.maps}) {
+    gardenRepository = AppInject.I.gardenRepository;
+
     _registerTypes();
     _startFarmGrowLoop();
   }
+  late final GardenRepository gardenRepository;
 
   static const tileSize = 32.0;
 
@@ -229,18 +235,20 @@ class GameServer extends Game {
     final initialMap = getOrCreateMap(message.map)..add(player);
 
     // send ACK to client that request join.
-    client.send(
-      EventType.JOIN_MAP.name,
-      JoinMapEvent(
-        state: player.state,
-        players: initialMap.playersState,
-        npcs: initialMap.npcsState,
-        map: initialMap.toModel(),
-      ),
-    );
+    onPlayerChangeMap(player, initialMap);
   }
 
-  void onPlayerChangeMap(GamePlayer player, GameMap map) {
+  @override
+  void onPlayerChangeMap(GamePlayer player, GameMap map) async {
+    final ownerId = map.id.split("_").lastOrNull;
+
+    // 2. load garden plots của user
+    final garden = await gardenRepository.getGarden(ownerId.orEmpty());
+
+    print(">>>>>>> garden=${garden.length}");
+    // 3. convert sang list json
+    // final gardenJson = garden.map((e) => e.toJson()).toList();
+
     player.send(
       EventType.JOIN_MAP.name,
       JoinMapEvent(
