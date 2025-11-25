@@ -1,5 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:shared_events/shared_events.dart';
+import 'package:shared_events/src/extension/list_ext.dart';
+import 'package:shared_events/src/model/garden_model.dart';
 
 class JoinMapEvent {
   JoinMapEvent({
@@ -7,10 +9,12 @@ class JoinMapEvent {
     required this.map,
     required this.players,
     required this.npcs,
+    this.garden,
   });
 
   final ComponentStateModel state;
   final MapModel map;
+  final Iterable<GardenModel>? garden;
   final Iterable<ComponentStateModel> players;
   final Iterable<ComponentStateModel> npcs;
 
@@ -18,10 +22,13 @@ class JoinMapEvent {
     return <String, dynamic>{
       'state': state.toMap(),
       'map': map.toMap(),
+      'garden': garden?.map((x) => x.toMap())
+          .toList(),
       'players': players
           .where((element) => element.id != state.id)
           .map((x) => x.toMap())
           .toList(),
+
       'npcs': npcs.map((x) => x.toMap()).toList(),
     };
   }
@@ -30,6 +37,7 @@ class JoinMapEvent {
     return JoinMapEvent(
       state: ComponentStateModel.fromMap(map['state'] as Map<String, dynamic>),
       map: MapModel.fromMap(map['map'] as Map<String, dynamic>),
+      garden: map.parseList('garden', GardenModel.fromMap),
       players: List<ComponentStateModel>.from(
         (map['players'] as List).map<ComponentStateModel>(
           (x) => ComponentStateModel.fromMap(x as Map<String, dynamic>),

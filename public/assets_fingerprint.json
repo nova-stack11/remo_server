@@ -1,8 +1,10 @@
 {
   "bundles": {
-    "garden": { "hash": "4baa319d1c456d4d8a1f243bac3daca66f5aeb8ecca5104a115f2b28bebe86e5" }
+    "common": { "hash": "d5246442eb6e20b900e1b815212b53de1fbce0795f843d88925eb9f2886b1992" }
 ,
-    "maps": { "hash": "97fbafd905b4f101973acb852bd18e962d612d05afdd440709436cad27fe02d5" }
+    "garden": { "hash": "9431ec0ca19c8371eb74117ca48c4c6c70698adf2686587a00399ad0e7be6dae" }
+,
+    "maps": { "hash": "73320cc786d5750b031e4d412cbc95f9e5a3270b569e2b0155286e4a19e097dc" }
 ,
     "plants": { "hash": "8ec964a8399ca2b3b46728b7df0f21e4030fc99597d4e99038d7e30dce757314" }
 ,

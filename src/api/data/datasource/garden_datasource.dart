@@ -103,7 +103,7 @@ class GardenDatasourceImpl implements GardenDatasource {
   @override
   Future<List<Map<String, dynamic>>> getGardenPlots(String userId) async {
     final query = Sql.named('''
-      SELECT * FROM user_garden_plots
+      SELECT x, y, plot_state FROM user_garden_plots
       WHERE user_id = @user_id
       ORDER BY y ASC, x ASC
     ''');

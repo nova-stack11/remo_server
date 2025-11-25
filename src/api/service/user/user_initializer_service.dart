@@ -1,7 +1,6 @@
-import '../../../game/state/garden_plot_state.dart';
-import '../../../util/map_ext.dart';
+import 'package:shared_events/shared_events.dart';
+
 import '../../data/datasource/garden_datasource.dart';
-import '../../data/datasource/inventory_datasource.dart';
 import '../../data/datasource/seed_datasource.dart';
 import '../../data/datasource/user_seed_datasource.dart';
 
@@ -25,13 +24,13 @@ class UserInitializerService {
   // 1) Garden plots — tạo 20 ô
   // ---------------------------------------------------------
   Future<void> _initGarden(String userId) async {
-    const int maxX = 4;
-    const int maxY = 5;
+    const int maxX = 3;
+    const int maxY = 4;
 
     int counter = 0;
 
-    for (var x = 1; x <= maxX; x++) {
-      for (var y = 1; y <= maxY; y++) {
+    for (var y = 0; y <= maxY; y++) {
+      for (var x = 0; x <= maxX; x++) {
         counter++;
 
         final state = counter <= 6

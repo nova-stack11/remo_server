@@ -9,7 +9,6 @@ import '../../app_injector.dart';
 import '../../main.dart';
 import '../api/data/repositories/garden_repository.dart';
 import '../infrastructure/websocket/websocket_provider.dart';
-import '../util/string_helper.dart';
 import 'components/garden_component.dart';
 import 'components/player.dart';
 import 'maps/home.dart';
@@ -245,10 +244,6 @@ class GameServer extends Game {
     // 2. load garden plots của user
     final garden = await gardenRepository.getGarden(ownerId.orEmpty());
 
-    print(">>>>>>> garden=${garden.length}");
-    // 3. convert sang list json
-    // final gardenJson = garden.map((e) => e.toJson()).toList();
-
     player.send(
       EventType.JOIN_MAP.name,
       JoinMapEvent(
@@ -256,6 +251,7 @@ class GameServer extends Game {
         players: map.playersState,
         npcs: map.npcsState,
         map: map.toModel(),
+        garden: garden.map(GardenModel.fromMap)
       ),
     );
   }
