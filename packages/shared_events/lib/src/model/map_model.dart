@@ -1,5 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'package:shared_events/shared_events.dart';
+
 class MapModel {
   final String id;
   final String name;
@@ -21,5 +23,9 @@ class MapModel {
       name: map['name'] as String,
       path: map['path'] as String,
     );
+  }
+
+  bool isMapOwner(String? userId) {
+    return id.contains(userId.orEmpty());
   }
 }

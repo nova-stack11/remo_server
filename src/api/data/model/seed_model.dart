@@ -24,7 +24,6 @@ class SeedModel {
   });
 
   factory SeedModel.fromMap(Map<String, dynamic> map) {
-    print(">>>>>>> =${map}");
     return SeedModel(
       id: map['id'].toString(),
       name: map['name'].toString(),

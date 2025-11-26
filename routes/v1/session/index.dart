@@ -29,7 +29,7 @@ Future<Response> onRequest(RequestContext context) async {
       }
 
       // Load related data
-      final gardenPlots = await gardenRepo.getGarden(userId);
+      final gardenPlots = await gardenRepo.getGardenByUserId(userId);
       final farmPlantsRaw = await farmRepo.getUserFarmPlants(userId);
       final userSeedsRaw = await seedRepo.getUserSeeds(userId);
 

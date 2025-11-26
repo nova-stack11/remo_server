@@ -37,7 +37,7 @@ Future<Response> _handleGetGarden(
     );
   }
 
-  final data = await repo.getGarden(userId);
+  final data = await repo.getGardenByUserId(userId);
 
   return ApiResponseFactory.success(data: data.sanitizedList());
 }

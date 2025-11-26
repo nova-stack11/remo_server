@@ -1,3 +1,5 @@
+import 'package:shared_events/shared_events.dart';
+
 typedef OnClientConnect = void Function(
   WebsocketClient client,
   WebsocketProvider server,
@@ -7,7 +9,7 @@ typedef OnClientDisconnect = void Function(
   WebsocketClient client,
 );
 
-abstract class WebsocketProvider {
+abstract class WebsocketProvider extends BaseWebsocketProvider {
   Future<WebsocketProvider> init({
     required OnClientConnect onClientConnect,
     required OnClientDisconnect onClientDisconnect,
@@ -17,14 +19,6 @@ abstract class WebsocketProvider {
   void sendToRoom<T>(String room, String event, T data);
   void broadcast<T>(String event, T data);
   void registerType<T>(TypeAdapter<T> type);
-}
-
-class TypeAdapter<T> {
-  TypeAdapter({required this.toMap, required this.fromMap});
-
-  final Map<String, dynamic> Function(T type) toMap;
-
-  final T Function(Map<String, dynamic> map) fromMap;
 }
 
 abstract class WebsocketClient {

@@ -16,13 +16,11 @@ import 'maps/home.dart';
 class GameServer extends Game {
   GameServer({required this.server, required super.maps}) {
     gardenRepository = AppInject.I.gardenRepository;
-
-    _registerTypes();
+    WebsocketRegisterType.registerTypes(server);
     _startFarmGrowLoop();
   }
-  late final GardenRepository gardenRepository;
 
-  static const tileSize = 32.0;
+  late final GardenRepository gardenRepository;
 
   List<WebsocketClient> clients = [];
 
@@ -36,9 +34,8 @@ class GameServer extends Game {
         logger.i('JoinEvent: ${message.toMap()}');
         _joinPlayerInTheGame(client, message);
       })
-      ..on<MyChangeMapEvent>(EventType.CHANGE_MAP.name, (message) {
-        _playerChangeMap(message);
-      })
+      ..on<CommonIdEvent>(UserClientEvent.GARDEN_UNLOCK_PLOT.name, _gardenUnlockPlot)
+      ..on<MyChangeMapEvent>(EventType.CHANGE_MAP.name, _playerChangeMap)
       ..on<PlantTreeEvent>(EventType.PLANT_TREE.name, (msg) {
         _onPlantTree(client, msg);
       })
@@ -57,6 +54,26 @@ class GameServer extends Game {
     Timer.periodic(Duration(seconds: 10), (_) {
       _updateFarmGrowth();
     });
+  }
+
+  Future<void> _gardenUnlockPlot(CommonIdEvent message) async {
+    logger.i('_gardenUnlockPlot: ${message.toMap()}');
+
+    await gardenRepository.updateState(gardenId: message.id, state: GardenPlotState.unlocked.name);
+    final garden = await gardenRepository.getGardenById(message.id);
+
+    final map = maps.firstWhereOrNull((m) => m.id == message.mapId);
+    if (map == null) {
+      logger.e("Map ${message.mapId} not found for unlock plot");
+      return;
+    }
+
+    for (final player in map.players) {
+      player.send(
+        UserServerEvent.GARDEN_UNLOCK_PLOT_RESULT.name,
+        garden,
+      );
+    }
   }
 
   void _playerChangeMap(MyChangeMapEvent message) {
@@ -242,82 +259,17 @@ class GameServer extends Game {
     final ownerId = map.id.split("_").lastOrNull;
 
     // 2. load garden plots của user
-    final garden = await gardenRepository.getGarden(ownerId.orEmpty());
+    final garden = await gardenRepository.getGardenByUserId(ownerId.orEmpty());
 
     player.send(
       EventType.JOIN_MAP.name,
       JoinMapEvent(
-        state: player.state,
-        players: map.playersState,
-        npcs: map.npcsState,
-        map: map.toModel(),
-        garden: garden.map(GardenModel.fromMap)
-      ),
+          state: player.state,
+          players: map.playersState,
+          npcs: map.npcsState,
+          map: map.toModel(),
+          garden: garden.map(GardenModel.fromMap)),
     );
-  }
-
-  void _registerTypes() {
-    server
-      ..registerType<JoinEvent>(
-        TypeAdapter(
-          toMap: (type) => type.toMap(),
-          fromMap: JoinEvent.fromMap,
-        ),
-      )
-      ..registerType<MyChangeMapEvent>(
-        TypeAdapter(
-          toMap: (type) => type.toMap(),
-          fromMap: MyChangeMapEvent.fromMap,
-        ),
-      )
-      ..registerType<JoinMapEvent>(
-        TypeAdapter(
-          toMap: (type) => type.toMap(),
-          fromMap: JoinMapEvent.fromMap,
-        ),
-      )
-      ..registerType<GameStateModel>(
-        TypeAdapter(
-          toMap: (type) => type.toMap(),
-          fromMap: GameStateModel.fromMap,
-        ),
-      )
-      ..registerType<PlayerEvent>(
-        TypeAdapter(
-          toMap: (type) => type.toMap(),
-          fromMap: PlayerEvent.fromMap,
-        ),
-      )
-      ..registerType<MoveEvent>(
-        TypeAdapter(
-          toMap: (type) => type.toMap(),
-          fromMap: MoveEvent.fromMap,
-        ),
-      )
-      ..registerType<PlantTreeEvent>(
-        TypeAdapter(
-          toMap: (e) => e.toMap(),
-          fromMap: PlantTreeEvent.fromMap,
-        ),
-      )
-      ..registerType<WaterTreeEvent>(
-        TypeAdapter(
-          toMap: (e) => e.toMap(),
-          fromMap: WaterTreeEvent.fromMap,
-        ),
-      )
-      ..registerType<HarvestTreeEvent>(
-        TypeAdapter(
-          toMap: (e) => e.toMap(),
-          fromMap: HarvestTreeEvent.fromMap,
-        ),
-      )
-      ..registerType<RemoveTreeEvent>(
-        TypeAdapter(
-          toMap: (e) => e.toMap(),
-          fromMap: RemoveTreeEvent.fromMap,
-        ),
-      );
   }
 
   @override

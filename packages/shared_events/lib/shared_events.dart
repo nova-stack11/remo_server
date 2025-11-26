@@ -3,7 +3,18 @@
 /// More dartdocs go here.
 library;
 
-export 'src/event_type.dart';
+export 'src/socket_event/event_type.dart';
+export 'src/socket_event/user_event.dart';
+
+export 'src/adapter/type_adapter.dart';
+
+export 'src/factory/websocket_register_type.dart';
+
+export 'src/provider/base_websocket_provider.dart';
+
+export 'src/constants/constants.dart';
+
+export 'src/events/common_id_event.dart';
 export 'src/events/join_map_event.dart';
 export 'src/events/join_event.dart';
 export 'src/events/move_event.dart';

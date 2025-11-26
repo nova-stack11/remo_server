@@ -3,6 +3,7 @@ import 'package:bonfire_server/bonfire_server.dart';
 import 'package:shared_events/shared_events.dart';
 
 import '../../infrastructure/websocket/websocket_provider.dart';
+import '../game_server.dart';
 
 class Player extends GamePlayer
     with Collision, MapRef, BlockMovementOnCollision {
@@ -13,7 +14,7 @@ class Player extends GamePlayer
     _listenMove();
     setupCollision(
       RectangleShape(
-        GameVector.all(32),
+        GameVector.all(tileSize),
         position: GameVector(x: 16, y: 32),
       ),
     );

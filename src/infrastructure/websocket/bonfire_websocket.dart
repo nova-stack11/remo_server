@@ -1,4 +1,5 @@
 import 'package:bonfire_socket_server/bonfire_socket_server.dart';
+import 'package:shared_events/shared_events.dart';
 
 import 'bonfire_websocket_client.dart';
 import 'websocket_provider.dart';
