@@ -31,7 +31,7 @@ Future<Response> onRequest(RequestContext context) async {
       // Load related data
       final gardenPlots = await gardenRepo.getGardenByUserId(userId);
       final farmPlantsRaw = await farmRepo.getUserFarmPlants(userId);
-      final userSeedsRaw = await seedRepo.getUserSeeds(userId);
+      final userSeedsRaw = await seedRepo.getSeedByUserId(userId);
 
       return ApiResponseFactory.success(
         data: {

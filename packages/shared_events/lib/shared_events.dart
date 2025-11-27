@@ -27,6 +27,7 @@ export 'src/events/my_change_map_event.dart';
 export 'src/model/game_state_model.dart';
 export 'src/model/garden_model.dart';
 export 'src/model/map_model.dart';
+export 'src/model/seed_model.dart';
 export 'src/model/component_state_model.dart';
 
 export 'src/util/game_vector.dart';

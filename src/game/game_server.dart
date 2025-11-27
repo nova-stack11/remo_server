@@ -7,7 +7,9 @@ import 'package:shared_events/shared_events.dart';
 
 import '../../app_injector.dart';
 import '../../main.dart';
+import '../api/data/repositories/farm_repository.dart';
 import '../api/data/repositories/garden_repository.dart';
+import '../api/data/repositories/seed_repository.dart';
 import '../infrastructure/websocket/websocket_provider.dart';
 import 'components/garden_component.dart';
 import 'components/player.dart';
@@ -16,13 +18,18 @@ import 'maps/home.dart';
 
 class GameServer extends Game {
   GameServer({required this.server, required super.maps}) {
-    gardenRepository = AppInject.I.gardenRepository;
+    _gardenRepository = AppInject.I.gardenRepository;
+    _farmRepository = AppInject.I.farmRepository;
+    _seedRepository = AppInject.I.seedRepository;
+
     _gardenEventHandler = AppInject.I.gardenEventHandler;
     WebsocketRegisterType.registerTypes(server);
     _startFarmGrowLoop();
   }
 
-  late final GardenRepository gardenRepository;
+  late final GardenRepository _gardenRepository;
+  late final FarmRepository _farmRepository;
+  late final SeedRepository _seedRepository;
   late final GardenEventHandler _gardenEventHandler;
 
   List<WebsocketClient> clients = [];
@@ -243,10 +250,13 @@ class GameServer extends Game {
   @override
   void onPlayerChangeMap(GamePlayer player, GameMap map) async {
     final ownerId = map.id.split("_").lastOrNull;
-
+    final isMapOwner = map.toModel().isMapOwner(player.state.id);
     // 2. load garden plots của user
-    final garden = await gardenRepository.getGardenByUserId(ownerId.orEmpty());
+    final garden = await _gardenRepository.getGardenByUserId(ownerId.orEmpty());
+    final seed = await _seedRepository.getSeedByUserId(ownerId.orEmpty());
 
+    print(">>>>>>>>>>>>> ${seed.firstOrNull}");
+    // get seed player.state.id
     player.send(
       EventType.JOIN_MAP.name,
       JoinMapEvent(
@@ -254,7 +264,9 @@ class GameServer extends Game {
           players: map.playersState,
           npcs: map.npcsState,
           map: map.toModel(),
-          garden: garden.map(GardenModel.fromMap)),
+          garden: garden.map(GardenModel.fromMap),
+          seed: seed.map(SeedModel.fromMap)
+      ),
     );
   }
 

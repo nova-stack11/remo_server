@@ -1,7 +1,7 @@
 import 'package:postgres/postgres.dart';
 import '../../../database/database.dart';
 abstract class SeedDataSource {
-  Future<List<Map<String, dynamic>>> getUserSeeds(String userId);
+  Future<List<Map<String, dynamic>>> getSeedByUserId(String userId);
   Future<Map<String, dynamic>?> getSeedById(String? seedId);
   Future<List<Map<String, dynamic>>> getFirstSeeds({int limit = 1});
 }
@@ -12,13 +12,17 @@ class SeedDataSourceImpl implements SeedDataSource {
   final DatabaseService db;
 
   @override
-  Future<List<Map<String, dynamic>>> getUserSeeds(String userId) async {
+  Future<List<Map<String, dynamic>>> getSeedByUserId(String userId) async {
     final query = Sql.named(
         '''
       SELECT 
-        us.*,
-        s.name AS seed_name,
-        s.seed_image AS seed_image
+        us.id,
+        us.quantity,
+        s.name AS name,
+        s.seed_image AS image,
+        s.grow_duration AS grow_duration,
+        s.water_interval AS water_interval,
+        s.reward AS reward        
       FROM user_seeds us
       JOIN seed s ON us.seed_id = s.id
       WHERE us.user_id=@userId
