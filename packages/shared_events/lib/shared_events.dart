@@ -14,7 +14,10 @@ export 'src/provider/base_websocket_provider.dart';
 
 export 'src/constants/constants.dart';
 
-export 'src/events/common_id_event.dart';
+export 'src/events/garden/garden_event.dart';
+export 'src/events/garden/garden_event_type.dart';
+export 'src/events/garden/unlock_plot_event.dart';
+
 export 'src/events/join_map_event.dart';
 export 'src/events/join_event.dart';
 export 'src/events/move_event.dart';

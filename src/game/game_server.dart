@@ -11,16 +11,19 @@ import '../api/data/repositories/garden_repository.dart';
 import '../infrastructure/websocket/websocket_provider.dart';
 import 'components/garden_component.dart';
 import 'components/player.dart';
+import 'event_handler/garden_event_handler.dart';
 import 'maps/home.dart';
 
 class GameServer extends Game {
   GameServer({required this.server, required super.maps}) {
     gardenRepository = AppInject.I.gardenRepository;
+    _gardenEventHandler = AppInject.I.gardenEventHandler;
     WebsocketRegisterType.registerTypes(server);
     _startFarmGrowLoop();
   }
 
   late final GardenRepository gardenRepository;
+  late final GardenEventHandler _gardenEventHandler;
 
   List<WebsocketClient> clients = [];
 
@@ -34,7 +37,10 @@ class GameServer extends Game {
         logger.i('JoinEvent: ${message.toMap()}');
         _joinPlayerInTheGame(client, message);
       })
-      ..on<CommonIdEvent>(UserClientEvent.GARDEN_UNLOCK_PLOT.name, _gardenUnlockPlot)
+      ..on<GardenEvent>(
+        UserClientEvent.GARDEN_EVENT.name,
+        (event) => _gardenEventHandler.handleGardenEvent(maps, event),
+      )
       ..on<MyChangeMapEvent>(EventType.CHANGE_MAP.name, _playerChangeMap)
       ..on<PlantTreeEvent>(EventType.PLANT_TREE.name, (msg) {
         _onPlantTree(client, msg);
@@ -54,26 +60,6 @@ class GameServer extends Game {
     Timer.periodic(Duration(seconds: 10), (_) {
       _updateFarmGrowth();
     });
-  }
-
-  Future<void> _gardenUnlockPlot(CommonIdEvent message) async {
-    logger.i('_gardenUnlockPlot: ${message.toMap()}');
-
-    await gardenRepository.updateState(gardenId: message.id, state: GardenPlotState.unlocked.name);
-    final garden = await gardenRepository.getGardenById(message.id);
-
-    final map = maps.firstWhereOrNull((m) => m.id == message.mapId);
-    if (map == null) {
-      logger.e("Map ${message.mapId} not found for unlock plot");
-      return;
-    }
-
-    for (final player in map.players) {
-      player.send(
-        UserServerEvent.GARDEN_UNLOCK_PLOT_RESULT.name,
-        garden,
-      );
-    }
   }
 
   void _playerChangeMap(MyChangeMapEvent message) {

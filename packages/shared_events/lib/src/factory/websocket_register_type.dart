@@ -15,12 +15,18 @@ class WebsocketRegisterType {
         fromMap: JoinMapEvent.fromMap,
       ),
     );
-    websocket.registerType<CommonIdEvent>(
+    websocket.registerType<GardenEvent>(
       TypeAdapter(
         toMap: (type) => type.toMap(),
-        fromMap: CommonIdEvent.fromMap,
+        fromMap: GardenEvent.fromMap,
       ),
     );
+    // websocket.registerType<UnlockPlotData>(
+    //   TypeAdapter(
+    //     toMap: (type) => type.toMap(),
+    //     fromMap: UnlockPlotData.fromMap,
+    //   ),
+    // );
     websocket.registerType<JoinEvent>(
       TypeAdapter(
         toMap: (type) => type.toMap(),
