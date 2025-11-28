@@ -18,19 +18,15 @@ import 'maps/home.dart';
 
 class GameServer extends Game {
   GameServer({required this.server, required super.maps}) {
-    _gardenRepository = AppInject.I.gardenRepository;
-    _farmRepository = AppInject.I.farmRepository;
-    _seedRepository = AppInject.I.seedRepository;
-
-    _gardenEventHandler = AppInject.I.gardenEventHandler;
     WebsocketRegisterType.registerTypes(server);
     _startFarmGrowLoop();
   }
 
-  late final GardenRepository _gardenRepository;
-  late final FarmRepository _farmRepository;
-  late final SeedRepository _seedRepository;
-  late final GardenEventHandler _gardenEventHandler;
+  late final GardenRepository _gardenRepository = AppInject.I.gardenRepository;
+  late final FarmRepository _farmRepository = AppInject.I.farmRepository;
+  late final SeedRepository _seedRepository = AppInject.I.seedRepository;
+  late final GardenEventHandler _gardenEventHandler =
+      AppInject.I.gardenEventHandler;
 
   List<WebsocketClient> clients = [];
 
@@ -45,22 +41,16 @@ class GameServer extends Game {
         _joinPlayerInTheGame(client, message);
       })
       ..on<GardenEvent>(
-        UserClientEvent.GARDEN_EVENT.name,
+        UserClientEventType.GARDEN_EVENT.name,
         (event) => _gardenEventHandler.handleGardenEvent(maps, event),
       )
-      ..on<MyChangeMapEvent>(EventType.CHANGE_MAP.name, _playerChangeMap)
-      ..on<PlantTreeEvent>(EventType.PLANT_TREE.name, (msg) {
-        _onPlantTree(client, msg);
-      })
-      ..on<WaterTreeEvent>(EventType.WATER_TREE.name, (msg) {
-        _onWaterTree(client, msg);
-      })
-      ..on<HarvestTreeEvent>(EventType.HARVEST_TREE.name, (msg) {
-        _onHarvestTree(client, msg);
-      })
-      ..on<RemoveTreeEvent>(EventType.REMOVE_TREE.name, (msg) {
-        _onRemoveTree(client, msg);
-      });
+      ..on<InventoryRequest>(
+        UserClientEventType.USER_INVENTORY.name,
+        (event) {
+          sendUserInventory(client, event.userId);
+        },
+      )
+      ..on<MyChangeMapEvent>(EventType.CHANGE_MAP.name, _playerChangeMap);
   }
 
   void _startFarmGrowLoop() {
@@ -249,24 +239,26 @@ class GameServer extends Game {
 
   @override
   void onPlayerChangeMap(GamePlayer player, GameMap map) async {
-    final ownerId = map.id.split("_").lastOrNull;
-    final isMapOwner = map.toModel().isMapOwner(player.state.id);
-    // 2. load garden plots của user
-    final garden = await _gardenRepository.getGardenByUserId(ownerId.orEmpty());
-    final seed = await _seedRepository.getSeedByUserId(ownerId.orEmpty());
-
-    print(">>>>>>>>>>>>> ${seed.firstOrNull}");
-    // get seed player.state.id
+    final mapData = map.toModel();
+    final garden =
+        await _gardenRepository.getGardenByUserId(mapData.ownerId().orEmpty());
     player.send(
       EventType.JOIN_MAP.name,
       JoinMapEvent(
-          state: player.state,
-          players: map.playersState,
-          npcs: map.npcsState,
-          map: map.toModel(),
-          garden: garden.map(GardenModel.fromMap),
-          seed: seed.map(SeedModel.fromMap)
+        state: player.state,
+        players: map.playersState,
+        npcs: map.npcsState,
+        map: map.toModel(),
+        garden: garden.map(GardenModel.fromMap),
       ),
+    );
+  }
+
+  void sendUserInventory(WebsocketClient client, String userId) async {
+    final seed = await _seedRepository.getSeedByUserId(userId);
+    client.send(
+      UserServerEventType.USER_INVENTORY.name,
+      InventoryResponse(seed: seed.map(SeedModel.fromMap)),
     );
   }
 

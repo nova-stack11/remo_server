@@ -14,4 +14,8 @@ class SeedRepository {
     final data = await datasource.getSeedById(seedId);
     return data;
   }
+
+  Future<void> decreaseQuantity(String id) async {
+    await datasource.decreaseQuantity(id);
+  }
 }

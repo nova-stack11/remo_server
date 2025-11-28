@@ -1,5 +1,4 @@
 import 'package:shared_events/shared_events.dart';
-import 'package:shared_events/src/provider/base_websocket_provider.dart';
 
 class WebsocketRegisterType {
   static void registerTypes(BaseWebsocketProvider websocket) {
@@ -15,6 +14,25 @@ class WebsocketRegisterType {
         fromMap: JoinMapEvent.fromMap,
       ),
     );
+    websocket.registerType<InventoryResponse>(
+      TypeAdapter(
+        toMap: (type) => type.toMap(),
+        fromMap: InventoryResponse.fromMap,
+      ),
+    );
+    websocket.registerType<InventoryRequest>(
+      TypeAdapter(
+        toMap: (type) => type.toMap(),
+        fromMap: InventoryRequest.fromMap,
+      ),
+    );
+    websocket.registerType<PlotSeedRequest>(
+      TypeAdapter(
+        toMap: (type) => type.toMap(),
+        fromMap: PlotSeedRequest.fromMap,
+      ),
+    );
+
     websocket.registerType<GardenEvent>(
       TypeAdapter(
         toMap: (type) => type.toMap(),

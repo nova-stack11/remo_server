@@ -29,7 +29,7 @@ BEGIN
 
     -- Admin có 10 carrot seed
     INSERT INTO user_seeds (user_id, seed_id, quantity, sprite_path)
-    VALUES (uid, (SELECT id FROM seed WHERE name = 'Carrot'), 10, 'plants/carrot/Crop_Carrot_Ripe_1_32x32.png')
+    VALUES (uid, (SELECT id FROM seed WHERE name = 'Carrot'), 10, 'plants/tomato/Crop_Tomato_Ripe_32x32.png')
     ON CONFLICT (user_id, seed_id) DO NOTHING;
 
     -- Admin có 5 tomato seed
@@ -39,7 +39,7 @@ BEGIN
 
     -- Admin có 8 flower seed
     INSERT INTO user_seeds (user_id, seed_id, quantity, sprite_path)
-    VALUES (uid, (SELECT id FROM seed WHERE name = 'Flower'), 8, 'plants/flower/Crop_Strawberry_Ripe_32x32.png')
+    VALUES (uid, (SELECT id FROM seed WHERE name = 'Flower'), 8, 'plants/tomato/Crop_Tomato_Ripe_32x32.png')
     ON CONFLICT (user_id, seed_id) DO NOTHING;
 
   END IF;

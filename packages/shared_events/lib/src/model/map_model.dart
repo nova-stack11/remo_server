@@ -28,4 +28,8 @@ class MapModel {
   bool isMapOwner(String? userId) {
     return id.contains(userId.orEmpty());
   }
+
+  String? ownerId() {
+    return id.split("_").lastOrNull;
+  }
 }

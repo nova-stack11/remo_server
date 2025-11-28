@@ -1,11 +1,14 @@
 // ignore_for_file: constant_identifier_names
 
-enum UserClientEvent {
+enum UserClientEventType {
+  USER_INVENTORY,
   GARDEN_EVENT,
   HOME_EVENT;
 }
 
-enum UserServerEvent {
+enum UserServerEventType {
+  USER_INVENTORY,
+  PLOT_SEED,
   GARDEN_EVENT_RESULT,
   HOME_RESULT;
 }

@@ -59,4 +59,18 @@ class FarmRepository {
       now: now,
     );
   }
+
+  Future<Map<String, dynamic>?> insertPlant({
+    required String gardenId,
+    required String seedId,
+  }) async {
+    final now = DateTime.now().toUtc();
+    final plant = await datasource.insertPlant(
+      gardenId: gardenId,
+      seedId: seedId,
+      state: 1,
+      now: now,
+    );
+    return plant;
+  }
 }

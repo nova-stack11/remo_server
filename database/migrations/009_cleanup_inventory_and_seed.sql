@@ -22,9 +22,9 @@ ALTER TABLE seed
 
 -- 4b. Temporary default images for new seed image fields
 UPDATE seed
-SET seed_image = 'plants/tomato/Crop_Tomato_Ripe_32x32.png',
-    stage1_image = 'plants/tomato/Crop_Tomato_Ripe_32x32.png',
-    stage2_image = 'plants/tomato/Crop_Tomato_Ripe_32x32.png',
+SET seed_image = 'plants/tomato/Crop_Tomato_Small_Basket_32x32.png',
+    stage1_image = 'plants/tomato/Crop_Tomato_Sprout_32x32.png',
+    stage2_image = 'plants/tomato/Crop_Tomato_Fruitless_32x32.png',
     stage3_image = 'plants/tomato/Crop_Tomato_Ripe_32x32.png'
 WHERE seed_image IS NULL
    OR stage1_image IS NULL

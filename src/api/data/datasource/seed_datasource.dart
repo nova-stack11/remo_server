@@ -4,6 +4,7 @@ abstract class SeedDataSource {
   Future<List<Map<String, dynamic>>> getSeedByUserId(String userId);
   Future<Map<String, dynamic>?> getSeedById(String? seedId);
   Future<List<Map<String, dynamic>>> getFirstSeeds({int limit = 1});
+  Future<void> decreaseQuantity(String id);
 }
 
 /// Triển khai datasource cho farm, kết nối PostgreSQL qua DatabaseService
@@ -19,10 +20,11 @@ class SeedDataSourceImpl implements SeedDataSource {
         us.id,
         us.quantity,
         s.name AS name,
-        s.seed_image AS image,
+        s.seed_image AS seed_image,
         s.grow_duration AS grow_duration,
         s.water_interval AS water_interval,
-        s.reward AS reward        
+        s.reward AS reward,        
+        s.description AS description        
       FROM user_seeds us
       JOIN seed s ON us.seed_id = s.id
       WHERE us.user_id=@userId
@@ -72,5 +74,23 @@ class SeedDataSourceImpl implements SeedDataSource {
     );
 
     return result.map((row) => row.toColumnMap()).toList();
+  }
+
+  @override
+  Future<void> decreaseQuantity(String id) async {
+    final query = Sql.named(
+      '''
+      UPDATE user_seeds
+      SET quantity = quantity - 1
+      WHERE id=@id AND quantity > 0
+      '''
+    );
+
+    await db.connection.execute(
+      query,
+      parameters: {
+        'id': id,
+      },
+    );
   }
 }

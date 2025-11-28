@@ -5,10 +5,12 @@ class SeedModel {
   final int? waterInterval;     // water_interval
   final int? stages;
   final int? reward;
+  final int? quantity;
   final String? seedImage;
   final String? stage1Image;
   final String? stage2Image;
   final String? stage3Image;
+  final String? description;
 
   SeedModel({
     required this.id,
@@ -17,10 +19,12 @@ class SeedModel {
     required this.waterInterval,
     required this.stages,
     required this.reward,
+    required this.quantity,
     required this.seedImage,
     required this.stage1Image,
     required this.stage2Image,
     required this.stage3Image,
+    required this.description,
   });
 
   factory SeedModel.fromMap(Map<String, dynamic> map) {
@@ -31,10 +35,12 @@ class SeedModel {
       waterInterval: map['water_interval'] as int?,
       stages: map['stages'] as int?,
       reward: map['reward'] as int?,
+      quantity: map['quantity'] as int?,
       seedImage: map['seed_image']?.toString() ?? '',
       stage1Image: map['stage1_image']?.toString() ?? '',
       stage2Image: map['stage2_image']?.toString() ?? '',
       stage3Image: map['stage3_image']?.toString() ?? '',
+      description: map['description']?.toString() ?? '',
     );
   }
 
@@ -46,10 +52,12 @@ class SeedModel {
       'water_interval': waterInterval,
       'stages': stages,
       'reward': reward,
+      'quantity': quantity,
       'seed_image': seedImage,
       'stage1_image': stage1Image,
       'stage2_image': stage2Image,
       'stage3_image': stage3Image,
+      'description': description,
     };
   }
 

@@ -1,5 +1,5 @@
 
-import 'package:shared_events/src/events/garden/garden_event_type.dart';
+import 'package:shared_events/src/socket_event/garden/garden_event_type.dart';
 
 class GardenEvent {
   GardenEvent({required this.type, required this.data});

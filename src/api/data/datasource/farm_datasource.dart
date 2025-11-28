@@ -23,6 +23,13 @@ abstract class FarmDataSource {
   });
 
   Future<List<Map<String, dynamic>>> getUserFarmPlants(String userId);
+
+  Future<Map<String, dynamic>?> insertPlant({
+    required String gardenId,
+    required String seedId,
+    required int state,
+    required DateTime now,
+  });
 }
 
 /// Triển khai datasource cho farm, kết nối PostgreSQL qua DatabaseService
@@ -147,5 +154,36 @@ class FarmDataSourceImpl implements FarmDataSource {
     });
 
     return result.affectedRows > 0;
+  }
+
+  @override
+  Future<Map<String, dynamic>?> insertPlant({
+    required String gardenId,
+    required String seedId,
+    required int state,
+    required DateTime now,
+  }) async {
+    final query = Sql.named(
+        '''
+    INSERT INTO user_farm_plants 
+      (garden_id, seed_id, state, planted_at, last_watered_at)
+    VALUES
+      (@gardenId, @seedId, @state, @now, @now)
+    RETURNING *
+    '''
+    );
+
+    final result = await db.connection.execute(
+      query,
+      parameters: {
+        'gardenId': gardenId,
+        'seedId': seedId,
+        'state': state,
+        'now': now,
+      },
+    );
+
+    if (result.isEmpty) return null;
+    return result.first.toColumnMap();
   }
 }

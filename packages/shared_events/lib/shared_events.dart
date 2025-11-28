@@ -4,7 +4,7 @@
 library;
 
 export 'src/socket_event/event_type.dart';
-export 'src/socket_event/user_event.dart';
+export 'src/socket_event/user_event_type.dart';
 
 export 'src/adapter/type_adapter.dart';
 
@@ -14,9 +14,13 @@ export 'src/provider/base_websocket_provider.dart';
 
 export 'src/constants/constants.dart';
 
-export 'src/events/garden/garden_event.dart';
-export 'src/events/garden/garden_event_type.dart';
-export 'src/events/garden/unlock_plot_event.dart';
+export 'src/socket_event/garden/garden_event_request.dart';
+export 'src/socket_event/garden/garden_event_type.dart';
+export 'src/socket_event/garden/unlock_plot_event_request.dart';
+
+export 'src/socket_event/user/inventory_response.dart';
+export 'src/socket_event/user/inventory_request.dart';
+export 'src/socket_event/garden/plot_seed_request.dart';
 
 export 'src/events/join_map_event.dart';
 export 'src/events/join_event.dart';
