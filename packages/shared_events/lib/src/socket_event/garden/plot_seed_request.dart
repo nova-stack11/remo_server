@@ -6,23 +6,36 @@ import 'package:shared_events/src/model/garden_model.dart';
 class PlotSeedRequest {
   PlotSeedRequest({
     required this.plotId,
+    required this.userSeedId,
     required this.seedId,
   });
 
-  final String plotId;
-  final String seedId;
+  final String? plotId;
+  final String? userSeedId;
+  final String? seedId;
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'plotId': plotId,
-      'seedId': seedId,
+      'plot_id': plotId,
+      'user_seed_id': userSeedId,
+      'seed_id': seedId,
     };
   }
 
   factory PlotSeedRequest.fromMap(Map<String, dynamic> map) {
     return PlotSeedRequest(
-      plotId: map['plotId'] as String,
-      seedId: map['seedId'] as String,
+      plotId: map['plot_id'] as String?,
+      userSeedId: map['user_seed_id'] as String?,
+      seedId: map['seed_id'] as String?,
     );
+  }
+
+  bool validated() {
+    return plotId != null &&
+        plotId!.isNotEmpty &&
+        userSeedId != null &&
+        userSeedId!.isNotEmpty &&
+        seedId != null &&
+        seedId!.isNotEmpty;
   }
 }

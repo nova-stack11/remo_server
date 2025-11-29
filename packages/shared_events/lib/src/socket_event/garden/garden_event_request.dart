@@ -1,27 +1,42 @@
+import 'package:shared_events/shared_events.dart';
 
-import 'package:shared_events/src/socket_event/garden/garden_event_type.dart';
-
-class GardenEvent {
-  GardenEvent({required this.type, required this.data});
+class GardenEventRequest {
+  GardenEventRequest({
+    required this.type,
+    required this.mapId,
+    required this.data,
+    this.ownerId,
+  });
 
   final String type;
-  final Map<String, dynamic> data;
+  final String mapId;
+  final String? ownerId;
+  final Map<String, dynamic>? data;
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'type': type,
+      'map_id': mapId,
+      'owner_id': ownerId,
       'data': data,
     };
   }
 
-  factory GardenEvent.fromMap(Map<String, dynamic> map) {
-    return GardenEvent(
+  factory GardenEventRequest.fromMap(Map<String, dynamic> map) {
+    return GardenEventRequest(
       type: map['type'] ?? '',
-      data: map['data'] ?? '',
+      mapId: map['map_id'] ?? '',
+      ownerId: map['owner_id'] ?? '',
+      data: map['data'],
     );
   }
 
   GardenEventType toType() {
     return GardenEventTypeExt.fromString(type);
+  }
+
+  bool validated() {
+    return type.isNotEmpty &&
+        mapId.isNotEmpty;
   }
 }

@@ -15,6 +15,7 @@ export 'src/provider/base_websocket_provider.dart';
 export 'src/constants/constants.dart';
 
 export 'src/socket_event/garden/garden_event_request.dart';
+export 'src/socket_event/garden/state/garden_event_response.dart';
 export 'src/socket_event/garden/garden_event_type.dart';
 export 'src/socket_event/garden/unlock_plot_event_request.dart';
 
@@ -32,6 +33,7 @@ export 'src/model/game_state_model.dart';
 export 'src/model/garden_model.dart';
 export 'src/model/map_model.dart';
 export 'src/model/seed_model.dart';
+export 'src/model/farm_model.dart';
 export 'src/model/component_state_model.dart';
 
 export 'src/util/game_vector.dart';

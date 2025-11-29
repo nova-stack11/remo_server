@@ -10,45 +10,45 @@ Future<Response> onRequest(RequestContext context) async {
 
   switch (context.request.method) {
     case HttpMethod.post:
-      try {
-        final body = await context.bodyAsMap();
-
-        final tileX = body['tileX'] as int?;
-        final tileY = body['tileY'] as int?;
-        final seedId = body['seedId'] as int?;
-        final userId = (body['id'] as String?)?.sanitized;
-        if (userId == null) {
-          return ApiResponseFactory.error(
-            message: 'id là bắt buộc',
-            statusCode: 400,
-          );
-        }
-
-        if (tileX == null || tileY == null || seedId == null) {
-          return ApiResponseFactory.error(
-            message: 'Không đủ thông tin để trồng hạt giống',
-            statusCode: 400,
-          );
-        }
-
-        final result = await repository.plantSeed(
-          userId: userId,
-          tileX: tileX,
-          tileY: tileY,
-          seedId: seedId,
-        );
-
-        if (result == null) {
-          return ApiResponseFactory.error(
-            message: 'Lỗi khi trồng hạt giống',
-          );
-        }
-
-        return ApiResponseFactory.success(data: result);
-      } catch (e) {
-        return ApiResponseFactory.error(message: e.toString());
-      }
-
+      // try {
+      //   final body = await context.bodyAsMap();
+      //
+      //   final tileX = body['tileX'] as int?;
+      //   final tileY = body['tileY'] as int?;
+      //   final seedId = body['seedId'] as int?;
+      //   final userId = (body['id'] as String?)?.sanitized;
+      //   if (userId == null) {
+      //     return ApiResponseFactory.error(
+      //       message: 'id là bắt buộc',
+      //       statusCode: 400,
+      //     );
+      //   }
+      //
+      //   if (tileX == null || tileY == null || seedId == null) {
+      //     return ApiResponseFactory.error(
+      //       message: 'Không đủ thông tin để trồng hạt giống',
+      //       statusCode: 400,
+      //     );
+      //   }
+      //
+      //   final result = await repository.plantSeed(
+      //     userId: userId,
+      //     tileX: tileX,
+      //     tileY: tileY,
+      //     seedId: seedId,
+      //   );
+      //
+      //   if (result == null) {
+      //     return ApiResponseFactory.error(
+      //       message: 'Lỗi khi trồng hạt giống',
+      //     );
+      //   }
+      //
+      //   return ApiResponseFactory.success(data: result);
+      // } catch (e) {
+      //   return ApiResponseFactory.error(message: e.toString());
+      // }
+      return ApiResponseFactory.methodNotAllow();
     default:
       return ApiResponseFactory.methodNotAllow();
   }

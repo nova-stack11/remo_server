@@ -39,7 +39,7 @@ Future<Response> _handleGetGarden(
 
   final data = await repo.getGardenByUserId(userId);
 
-  return ApiResponseFactory.success(data: data.sanitizedList());
+  return ApiResponseFactory.success(data: data.sanitizeObjList());
 }
 
 /// ===============================

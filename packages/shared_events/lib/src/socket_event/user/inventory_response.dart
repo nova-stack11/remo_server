@@ -5,20 +5,24 @@ import 'package:shared_events/src/model/garden_model.dart';
 
 class InventoryResponse {
   InventoryResponse({
-    this.seed,
+    this.seeds,
+    this.farms,
   });
 
-  final Iterable<SeedModel>? seed;
+  final Iterable<SeedModel>? seeds;
+  final Iterable<FarmModel>? farms;
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'seed': seed?.map((x) => x.toMap()).toList(),
+      'seeds': seeds?.map((x) => x.toMap()).toList(),
+      'farms': farms?.map((x) => x.toMap()).toList(),
     };
   }
 
   factory InventoryResponse.fromMap(Map<String, dynamic> map) {
     return InventoryResponse(
-      seed: map.parseList('seed', SeedModel.fromMap),
+      seeds: map.parseList('seeds', SeedModel.fromMap),
+      farms: map.parseList('farms', FarmModel.fromMap),
     );
   }
 }

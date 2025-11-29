@@ -22,12 +22,12 @@ abstract class FarmDataSource {
     required int y,
   });
 
-  Future<List<Map<String, dynamic>>> getUserFarmPlants(String userId);
+  Future<List<Map<String, dynamic>>> getFarmByUserId(String userId);
 
   Future<Map<String, dynamic>?> insertPlant({
     required String gardenId,
     required String seedId,
-    required int state,
+    required int stage,
     required DateTime now,
   });
 }
@@ -47,19 +47,31 @@ class FarmDataSourceImpl implements FarmDataSource {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getUserFarmPlants(String userId) async {
+  Future<List<Map<String, dynamic>>> getFarmByUserId(String userId) async {
     final query = Sql.named(
       '''
       SELECT 
-        ufp.*,
-        s.id AS seed_id,
+        ufp.id,
+        ufp.garden_id,
+        ufp.planted_at,
+        ufp.last_watered_at,
+        ufp.stage,
+        ufp.is_dead,
+        ufp.withered_at,
         s.name AS seed_name,
-        s.grow_duration AS seed_grow_duration,
-        s.water_interval AS seed_water_interval
+        s.grow_duration AS grow_duration,
+        s.water_interval AS water_interval,
+        s.stage1_image AS stage1_image,
+        s.stage2_image AS stage2_image,
+        s.stage3_image AS stage3_image,
+        g.user_id AS user_id,       
+        g.x AS x,
+        g.y AS y
       FROM user_farm_plants ufp
       JOIN seed s ON ufp.seed_id = s.id
-      WHERE ufp.user_id=@userId
-      ORDER BY ufp.y ASC, ufp.x ASC
+      JOIN user_garden_plots g ON ufp.garden_id = g.id
+      WHERE g.user_id=@userId
+      ORDER BY g.y ASC, g.x ASC
       '''
     );
 
@@ -160,15 +172,15 @@ class FarmDataSourceImpl implements FarmDataSource {
   Future<Map<String, dynamic>?> insertPlant({
     required String gardenId,
     required String seedId,
-    required int state,
+    required int stage,
     required DateTime now,
   }) async {
     final query = Sql.named(
         '''
     INSERT INTO user_farm_plants 
-      (garden_id, seed_id, state, planted_at, last_watered_at)
+      (garden_id, seed_id, stage, planted_at, last_watered_at)
     VALUES
-      (@gardenId, @seedId, @state, @now, @now)
+      (@gardenId, @seedId, @stage, @now, @now)
     RETURNING *
     '''
     );
@@ -178,7 +190,7 @@ class FarmDataSourceImpl implements FarmDataSource {
       parameters: {
         'gardenId': gardenId,
         'seedId': seedId,
-        'state': state,
+        'stage': stage,
         'now': now,
       },
     );

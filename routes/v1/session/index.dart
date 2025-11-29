@@ -30,14 +30,14 @@ Future<Response> onRequest(RequestContext context) async {
 
       // Load related data
       final gardenPlots = await gardenRepo.getGardenByUserId(userId);
-      final farmPlantsRaw = await farmRepo.getUserFarmPlants(userId);
+      final farmPlantsRaw = await farmRepo.getFarmByUserId(userId);
       final userSeedsRaw = await seedRepo.getSeedByUserId(userId);
 
       return ApiResponseFactory.success(
         data: {
-          "garden_plots": gardenPlots.sanitizedList(),
-          "farm_plants": farmPlantsRaw.sanitizedList(),
-          "seeds": userSeedsRaw.sanitizedList(),
+          "garden_plots": gardenPlots.sanitizeObjList(),
+          "farm_plants": farmPlantsRaw.sanitizeObjList(),
+          "seeds": userSeedsRaw.sanitizeObjList(),
         },
       );
 

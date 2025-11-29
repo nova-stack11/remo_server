@@ -18,6 +18,7 @@ class SeedDataSourceImpl implements SeedDataSource {
         '''
       SELECT 
         us.id,
+        us.seed_id,
         us.quantity,
         s.name AS name,
         s.seed_image AS seed_image,
@@ -82,7 +83,7 @@ class SeedDataSourceImpl implements SeedDataSource {
       '''
       UPDATE user_seeds
       SET quantity = quantity - 1
-      WHERE id=@id AND quantity > 0
+      WHERE id=@id AND quantity >= 0
       '''
     );
 

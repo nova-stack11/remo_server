@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:bonfire_server/bonfire_server.dart';
@@ -40,7 +41,7 @@ class GameServer extends Game {
         logger.i('JoinEvent: ${message.toMap()}');
         _joinPlayerInTheGame(client, message);
       })
-      ..on<GardenEvent>(
+      ..on<GardenEventRequest>(
         UserClientEventType.GARDEN_EVENT.name,
         (event) => _gardenEventHandler.handleGardenEvent(maps, event),
       )
@@ -240,8 +241,8 @@ class GameServer extends Game {
   @override
   void onPlayerChangeMap(GamePlayer player, GameMap map) async {
     final mapData = map.toModel();
-    final garden =
-        await _gardenRepository.getGardenByUserId(mapData.ownerId().orEmpty());
+    final garden = await _gardenRepository.getGardenByUserId(mapData.ownerId().orEmpty());
+    final farm = await _farmRepository.getFarmByUserId(mapData.ownerId().orEmpty());
     player.send(
       EventType.JOIN_MAP.name,
       JoinMapEvent(
@@ -250,15 +251,20 @@ class GameServer extends Game {
         npcs: map.npcsState,
         map: map.toModel(),
         garden: garden.map(GardenModel.fromMap),
+        farms: farm.map(FarmModel.fromMap),
       ),
     );
   }
 
   void sendUserInventory(WebsocketClient client, String userId) async {
     final seed = await _seedRepository.getSeedByUserId(userId);
+    // final farm = await _farmRepository.getFarmByUserId(userId);
     client.send(
       UserServerEventType.USER_INVENTORY.name,
-      InventoryResponse(seed: seed.map(SeedModel.fromMap)),
+      InventoryResponse(
+        seeds: seed.map(SeedModel.fromMap),
+        // farms: farm.map(FarmModel.fromMap),
+      ),
     );
   }
 

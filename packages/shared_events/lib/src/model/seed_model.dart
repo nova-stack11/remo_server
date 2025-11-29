@@ -1,5 +1,6 @@
 class SeedModel {
   final String? id;
+  final String? seedId;
   final String? name;
   final int? growDuration;      // grow_duration
   final int? waterInterval;     // water_interval
@@ -14,6 +15,7 @@ class SeedModel {
 
   SeedModel({
     required this.id,
+    required this.seedId,
     required this.name,
     required this.growDuration,
     required this.waterInterval,
@@ -30,6 +32,7 @@ class SeedModel {
   factory SeedModel.fromMap(Map<String, dynamic> map) {
     return SeedModel(
       id: map['id'].toString(),
+      seedId: map['seed_id'].toString(),
       name: map['name'].toString(),
       growDuration: map['grow_duration'] as int?,
       waterInterval: map['water_interval'] as int?,
@@ -47,6 +50,7 @@ class SeedModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'seed_id': seedId,
       'name': name,
       'grow_duration': growDuration,
       'water_interval': waterInterval,

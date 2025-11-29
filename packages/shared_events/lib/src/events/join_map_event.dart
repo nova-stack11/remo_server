@@ -10,11 +10,13 @@ class JoinMapEvent {
     required this.players,
     required this.npcs,
     this.garden,
+    this.farms,
   });
 
   final ComponentStateModel state;
   final MapModel map;
   final Iterable<GardenModel>? garden;
+  final Iterable<FarmModel>? farms;
   final Iterable<ComponentStateModel> players;
   final Iterable<ComponentStateModel> npcs;
 
@@ -23,6 +25,7 @@ class JoinMapEvent {
       'state': state.toMap(),
       'map': map.toMap(),
       'garden': garden?.map((x) => x.toMap()).toList(),
+      'farms': farms?.map((x) => x.toMap()).toList(),
       'players': players
           .where((element) => element.id != state.id)
           .map((x) => x.toMap())
@@ -37,6 +40,7 @@ class JoinMapEvent {
       state: ComponentStateModel.fromMap(map['state'] as Map<String, dynamic>),
       map: MapModel.fromMap(map['map'] as Map<String, dynamic>),
       garden: map.parseList('garden', GardenModel.fromMap),
+      farms: map.parseList('farms', FarmModel.fromMap),
       players: List<ComponentStateModel>.from(
         (map['players'] as List).map<ComponentStateModel>(
           (x) => ComponentStateModel.fromMap(x as Map<String, dynamic>),

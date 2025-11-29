@@ -199,4 +199,5 @@ abstract class GameMap extends GameComponent {
       y: yTilePosition.toDouble(),
     );
   }
+
 }

@@ -1,21 +1,18 @@
 
-class UnlockPlotData {
-  UnlockPlotData({required this.id, required this.mapId});
+class UnlockPlotDataRequest {
+  UnlockPlotDataRequest({required this.id});
 
   final String id;
-  final String mapId;
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
-      'mapId': mapId,
     };
   }
 
-  factory UnlockPlotData.fromMap(Map<String, dynamic> map) {
-    return UnlockPlotData(
+  factory UnlockPlotDataRequest.fromMap(Map<String, dynamic> map) {
+    return UnlockPlotDataRequest(
       id: map['id'] ?? '',
-      mapId: map['mapId'] ?? '',
     );
   }
 }
