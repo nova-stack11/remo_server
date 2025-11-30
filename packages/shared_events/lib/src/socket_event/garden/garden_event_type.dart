@@ -2,6 +2,7 @@
 enum GardenEventType {
   unlockPlot,
   plantTree,
+  needWaterTree,
   waterTree,
   harvestTree,
   removeTree,

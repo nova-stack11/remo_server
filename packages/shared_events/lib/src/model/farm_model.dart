@@ -7,6 +7,7 @@ class FarmModel {
   final String? lastWateredAt;
   final int? stage;
   final bool? isDead;
+  final bool? needWater;
   final String? witheredAt;
 
   final String? seedName;
@@ -28,6 +29,7 @@ class FarmModel {
     this.lastWateredAt,
     this.stage,
     this.isDead,
+    this.needWater,
     this.witheredAt,
     this.seedName,
     this.stage1Image,
@@ -48,6 +50,7 @@ class FarmModel {
       'last_watered_at': lastWateredAt,
       'stage': stage,
       'is_dead': isDead,
+      'need_water': needWater,
       'withered_at': witheredAt,
       'seed_name': seedName,
       'stage1_image': stage1Image,
@@ -69,6 +72,7 @@ class FarmModel {
       lastWateredAt: map['last_watered_at'] as String?,
       stage: map['stage'] as int?,
       isDead: map['is_dead'] as bool?,
+      needWater: map['need_water'] as bool?,
       witheredAt: map['withered_at'] as String?,
       seedName: map['seed_name'] as String?,
       stage1Image: map['stage1_image'] as String?,

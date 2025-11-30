@@ -17,11 +17,10 @@ export 'src/constants/constants.dart';
 export 'src/socket_event/garden/garden_event_request.dart';
 export 'src/socket_event/garden/state/garden_event_response.dart';
 export 'src/socket_event/garden/garden_event_type.dart';
-export 'src/socket_event/garden/unlock_plot_event_request.dart';
 
 export 'src/socket_event/user/inventory_response.dart';
 export 'src/socket_event/user/inventory_request.dart';
-export 'src/socket_event/garden/plot_seed_request.dart';
+export 'src/socket_event/garden/garden_data_request.dart';
 
 export 'src/events/join_map_event.dart';
 export 'src/events/join_event.dart';

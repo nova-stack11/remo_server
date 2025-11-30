@@ -27,10 +27,10 @@ class WebsocketRegisterType {
         fromMap: InventoryRequest.fromMap,
       ),
     );
-    websocket.registerType<PlotSeedRequest>(
+    websocket.registerType<GardenDataRequest>(
       TypeAdapter(
         toMap: (type) => type.toMap(),
-        fromMap: PlotSeedRequest.fromMap,
+        fromMap: GardenDataRequest.fromMap,
       ),
     );
 

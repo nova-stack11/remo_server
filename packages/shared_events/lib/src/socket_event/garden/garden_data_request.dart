@@ -3,36 +3,40 @@ import 'package:shared_events/shared_events.dart';
 import 'package:shared_events/src/extension/list_ext.dart';
 import 'package:shared_events/src/model/garden_model.dart';
 
-class PlotSeedRequest {
-  PlotSeedRequest({
-    required this.plotId,
-    required this.userSeedId,
-    required this.seedId,
+class GardenDataRequest {
+  GardenDataRequest({
+    this.gardentId,
+    this.userSeedId,
+    this.seedId,
+    this.farmId,
   });
 
-  final String? plotId;
+  final String? gardentId;
   final String? userSeedId;
   final String? seedId;
+  final String? farmId;
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'plot_id': plotId,
+      'garden_id': gardentId,
       'user_seed_id': userSeedId,
       'seed_id': seedId,
+      'farm_id': farmId,
     };
   }
 
-  factory PlotSeedRequest.fromMap(Map<String, dynamic> map) {
-    return PlotSeedRequest(
-      plotId: map['plot_id'] as String?,
+  factory GardenDataRequest.fromMap(Map<String, dynamic> map) {
+    return GardenDataRequest(
+      gardentId: map['garden_id'] as String?,
       userSeedId: map['user_seed_id'] as String?,
       seedId: map['seed_id'] as String?,
+      farmId: map['farm_id'] as String?,
     );
   }
 
   bool validated() {
-    return plotId != null &&
-        plotId!.isNotEmpty &&
+    return gardentId != null &&
+        gardentId!.isNotEmpty &&
         userSeedId != null &&
         userSeedId!.isNotEmpty &&
         seedId != null &&

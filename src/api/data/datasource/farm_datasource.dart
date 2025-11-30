@@ -1,21 +1,10 @@
 import 'package:postgres/postgres.dart';
 import '../../../database/database.dart';
 abstract class FarmDataSource {
-  Future<Map<String, dynamic>?> plantSeed({
-    required String userId,
-    required int x,
-    required int y,
-    required int seedId,
-    required DateTime now,
-  });
+  Future<bool> waterPlant({required String id,});
+  Future<bool> needWaterPlant({required String id,});
 
-  Future<bool> waterPlant({
-    required String userId,
-    required String plantId,
-    required DateTime now,
-  });
-
-  Future<Map<String, dynamic>?> getSeedById(int seedId);
+  Future<Map<String, dynamic>?> getFarmById({required String id});
   Future<Map<String, dynamic>?> getPlantByTile({
     required String userId,
     required int x,
@@ -30,6 +19,15 @@ abstract class FarmDataSource {
     required int stage,
     required DateTime now,
   });
+
+  Future<void> updatePlantNeedWater({
+    required String plantId,
+    required bool needWater,
+  });
+
+  Future<void> markPlantDead({
+    required String plantId,
+  });
 }
 
 /// Triển khai datasource cho farm, kết nối PostgreSQL qua DatabaseService
@@ -38,9 +36,38 @@ class FarmDataSourceImpl implements FarmDataSource {
   final DatabaseService db;
 
   @override
-  Future<Map<String, dynamic>?> getSeedById(int seedId) async {
-    final query = Sql.named('SELECT * FROM seed WHERE seed_id=@id LIMIT 1');
-    final result = await db.connection.execute(query, parameters: {'id': seedId});
+  Future<Map<String, dynamic>?> getFarmById({required String id}) async {
+    final query = Sql.named(
+        '''
+      SELECT 
+        ufp.id,
+        ufp.garden_id,
+        ufp.planted_at,
+        ufp.last_watered_at,
+        ufp.stage,
+        ufp.is_dead,
+        ufp.need_water,
+        ufp.withered_at,
+        s.name AS seed_name,
+        s.grow_duration AS grow_duration,
+        s.water_interval AS water_interval,
+        s.stage1_image AS stage1_image,
+        s.stage2_image AS stage2_image,
+        s.stage3_image AS stage3_image,
+        g.user_id AS user_id,
+        g.x AS x,
+        g.y AS y
+      FROM user_farm_plants ufp
+      JOIN seed s ON ufp.seed_id = s.id
+      JOIN user_garden_plots g ON ufp.garden_id = g.id
+      WHERE ufp.id=@id
+      LIMIT 1
+      '''
+    );
+
+    final result = await db.connection.execute(query, parameters: {
+      'id': id,
+    });
 
     if (result.isEmpty) return null;
     return result.first.toColumnMap();
@@ -57,6 +84,7 @@ class FarmDataSourceImpl implements FarmDataSource {
         ufp.last_watered_at,
         ufp.stage,
         ufp.is_dead,
+        ufp.need_water,
         ufp.withered_at,
         s.name AS seed_name,
         s.grow_duration AS grow_duration,
@@ -107,63 +135,51 @@ class FarmDataSourceImpl implements FarmDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>?> plantSeed({
-    required String userId,
-    required int x,
-    required int y,
-    required int seedId,
-    required DateTime now,
-  }) async {
-    final seed = await getSeedById(seedId);
-    if (seed == null) return null;
-
-    final query = Sql.named(
-        '''
-      INSERT INTO user_farm_plants 
-        (user_id, x, y, seed_id,
-         planted_at, last_watered_at, 
-         grow_duration, water_interval)
-      VALUES
-        (@userId, @x, @y, @seedId,
-         @now, @now,
-         @grow, @water)
-      RETURNING *
-      '''
-    );
-
-    final result = await db.connection.execute(query, parameters: {
-      'userId': userId,
-      'x': x,
-      'y': y,
-      'seedId': seedId,
-      'now': now,
-      'grow': seed['grow_duration'],
-      'water': seed['water_interval'],
-    });
-
-    if (result.isEmpty) return null;
-    return result.first.toColumnMap();
-  }
-
-  @override
-  Future<bool> waterPlant({
-    required String userId,
-    required String plantId,
-    required DateTime now,
+  Future<bool> needWaterPlant({
+    required String id,
   }) async {
     final query = Sql.named(
         '''
       UPDATE user_farm_plants
-      SET last_watered_at=@now
-      WHERE id=@id AND user_id=@userId AND is_dead=FALSE
+      SET 
+        need_water = TRUE
+      WHERE id = @id AND is_dead = FALSE
       '''
     );
 
-    final result = await db.connection.execute(query, parameters: {
-      'id': plantId,
-      'userId': userId,
-      'now': now,
-    });
+    final result = await db.connection.execute(
+      query,
+      parameters: {
+        'id': id,
+      },
+    );
+
+    return result.affectedRows > 0;
+  }
+
+  @override
+  Future<bool> waterPlant({
+    required String id,
+  }) async {
+    final now = DateTime.now().toUtc();
+    final query = Sql.named(
+        '''
+      UPDATE user_farm_plants
+      SET 
+        need_water = FALSE,
+        stage = stage + 1,
+        planted_at = @now
+      WHERE id = @id AND is_dead = FALSE
+      '''
+    );
+
+    final result = await db.connection.execute(
+      query,
+      parameters: {
+        'id': id,
+        'now': now,
+      },
+    );
 
     return result.affectedRows > 0;
   }
@@ -197,5 +213,47 @@ class FarmDataSourceImpl implements FarmDataSource {
 
     if (result.isEmpty) return null;
     return result.first.toColumnMap();
+  }
+
+  @override
+  Future<void> updatePlantNeedWater({
+    required String plantId,
+    required bool needWater,
+  }) async {
+    final query = Sql.named(
+      '''
+      UPDATE user_farm_plants
+      SET need_water=@needWater
+      WHERE id=@id
+      '''
+    );
+
+    await db.connection.execute(
+      query,
+      parameters: {
+        'id': plantId,
+        'needWater': needWater,
+      },
+    );
+  }
+
+  @override
+  Future<void> markPlantDead({
+    required String plantId,
+  }) async {
+    final query = Sql.named(
+      '''
+      UPDATE user_farm_plants
+      SET is_dead=TRUE
+      WHERE id=@id
+      '''
+    );
+
+    await db.connection.execute(
+      query,
+      parameters: {
+        'id': plantId,
+      },
+    );
   }
 }
