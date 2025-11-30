@@ -28,6 +28,10 @@ abstract class FarmDataSource {
   Future<void> markPlantDead({
     required String plantId,
   });
+
+  Future<void> deletePlantById({
+    required String plantId,
+  });
 }
 
 /// Triển khai datasource cho farm, kết nối PostgreSQL qua DatabaseService
@@ -42,6 +46,7 @@ class FarmDataSourceImpl implements FarmDataSource {
       SELECT 
         ufp.id,
         ufp.garden_id,
+        ufp.seed_id,
         ufp.planted_at,
         ufp.last_watered_at,
         ufp.stage,
@@ -54,6 +59,7 @@ class FarmDataSourceImpl implements FarmDataSource {
         s.stage1_image AS stage1_image,
         s.stage2_image AS stage2_image,
         s.stage3_image AS stage3_image,
+        s.seed_dead_image AS seed_dead_image,
         g.user_id AS user_id,
         g.x AS x,
         g.y AS y
@@ -80,6 +86,7 @@ class FarmDataSourceImpl implements FarmDataSource {
       SELECT 
         ufp.id,
         ufp.garden_id,
+        ufp.seed_id,        
         ufp.planted_at,
         ufp.last_watered_at,
         ufp.stage,
@@ -92,6 +99,7 @@ class FarmDataSourceImpl implements FarmDataSource {
         s.stage1_image AS stage1_image,
         s.stage2_image AS stage2_image,
         s.stage3_image AS stage3_image,
+        s.seed_dead_image AS seed_dead_image,
         g.user_id AS user_id,       
         g.x AS x,
         g.y AS y
@@ -245,6 +253,25 @@ class FarmDataSourceImpl implements FarmDataSource {
       '''
       UPDATE user_farm_plants
       SET is_dead=TRUE
+      WHERE id=@id
+      '''
+    );
+
+    await db.connection.execute(
+      query,
+      parameters: {
+        'id': plantId,
+      },
+    );
+  }
+
+  @override
+  Future<void> deletePlantById({
+    required String plantId,
+  }) async {
+    final query = Sql.named(
+      '''
+      DELETE FROM user_farm_plants
       WHERE id=@id
       '''
     );

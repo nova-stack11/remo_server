@@ -5,6 +5,8 @@ import '../../../app_injector.dart';
 import '../../api/data/repositories/farm_repository.dart';
 import '../../api/data/repositories/garden_repository.dart';
 import '../../api/data/repositories/seed_repository.dart';
+import '../../api/data/repositories/user_repository.dart';
+import '../../api/data/repositories/user_ws_repository.dart';
 import '../../extension/game_map_ext.dart';
 
 class GardenEventHandler {
@@ -13,6 +15,7 @@ class GardenEventHandler {
   late final GardenRepository gardenRepository = AppInject.I.gardenRepository;
   late final SeedRepository seedRepository = AppInject.I.seedRepository;
   late final FarmRepository farmRepository = AppInject.I.farmRepository;
+  late final UserWsRepository userRepository = AppInject.I.userRepository;
 
   void handleGardenEvent(List<GameMap> maps, GardenEventRequest event) {
     switch (event.toType()) {
@@ -29,6 +32,7 @@ class GardenEventHandler {
         _handleNeedWaterTree(maps, event);
         break;
       case GardenEventType.harvestTree:
+        _handleHarvest(maps, event);
         break;
       case GardenEventType.removeTree:
         break;
@@ -84,6 +88,23 @@ class GardenEventHandler {
         eventType: UserServerEventType.GARDEN_EVENT_RESULT.name,
         data: GardenEventResponse(
             type: GardenEventType.plantTree.name, farms: [farms]));
+  }
+  Future<void> _handleHarvest(
+      List<GameMap> maps, GardenEventRequest event) async {
+    if (!event.validated()) return;
+
+    final data = GardenDataRequest.fromMap(event.data ?? {});
+
+    final seed = await seedRepository.getSeedById(data.seedId.orEmpty());
+    final amount = seed?['reward'] as int?;
+    await userRepository.plusCoin(userId: event.ownerId.orEmpty(), amount: amount.orZero());
+    await farmRepository.deletePlantById(id: data.farmId.orEmpty());
+
+    maps.sendAllUser(
+        mapId: event.mapId,
+        eventType: UserServerEventType.GARDEN_EVENT_RESULT.name,
+        data: GardenEventResponse(
+            type: GardenEventType.harvestTree.name, farmId: data.farmId, reward: amount));
   }
 
   Future<void> _handlePlantTree(

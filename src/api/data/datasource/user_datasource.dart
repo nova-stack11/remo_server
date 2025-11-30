@@ -4,6 +4,10 @@ import '../../../database/database.dart';
 abstract class UserDataSource {
   Future<Map<String, dynamic>?> getUserByUsername({required String username, bool removePassword = true});
   Future<Map<String, dynamic>?> getUserById({required String id});
+  Future<void> plusCoin({
+    required String userId,
+    required int amount,
+  });
 }
 
 /// Triển khai datasource cho user, kết nối PostgreSQL qua DatabaseService
@@ -34,4 +38,25 @@ class UserDataSourceImpl implements UserDataSource {
     return map;
   }
 
+  @override
+  Future<void> plusCoin({
+    required String userId,
+    required int amount,
+  }) async {
+    final query = Sql.named(
+      '''
+      UPDATE users
+      SET coin = coin + @amount
+      WHERE id = @id
+      '''
+    );
+
+    await db.connection.execute(
+      query,
+      parameters: {
+        'id': userId,
+        'amount': amount,
+      },
+    );
+  }
 }

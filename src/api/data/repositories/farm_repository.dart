@@ -54,13 +54,35 @@ class FarmRepository {
             }
           }
         }
-      }
+      };
 
-      updatedRows.add(row);
+      updatedRows.add(_applyPlantImageLogic(row));
     }
-
     // 4. Return updated sanitized data
     return updatedRows.sanitizeMapList();
+  }
+
+  Map<String, dynamic> _applyPlantImageLogic(Map<String, dynamic> map) {
+    final isDead = map.getOrNull('is_dead') as bool? ?? false;
+
+    if (isDead) {
+      map['image'] = map['seed_dead_image'];
+    } else {
+      final stage = map.getOrNull('stage') as int? ?? 1;
+      switch (stage) {
+        case 1:
+          map['image'] = map['stage1_image'];
+          break;
+        case 2:
+          map['image'] = map['stage2_image'];
+          break;
+        case 3:
+        default:
+          map['image'] = map['stage3_image'];
+          break;
+      }
+    }
+    return map;
   }
 
   // ===========================
@@ -102,6 +124,16 @@ class FarmRepository {
     final plant = await datasource.getFarmById(
       id: id,
     );
-    return FarmModel.fromMap(plant?.sanitizeMap() ?? {});
+    final map = plant?.sanitizeMap() ?? {};
+    _applyPlantImageLogic(map);
+
+    return FarmModel.fromMap(map);
   }
+
+  Future<void> deletePlantById({
+    required String id,
+  }) async {
+    await datasource.deletePlantById(plantId: id);
+  }
+
 }
