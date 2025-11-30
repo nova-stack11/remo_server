@@ -8,6 +8,7 @@ class GardenEventResponse {
     this.farms,
     this.gardenPlots,
     this.seeds,
+    this.gardenId,
     this.farmId,
     this.reward,
   });
@@ -19,6 +20,7 @@ class GardenEventResponse {
   final List<SeedModel>? seeds;
 
   // harvest
+  final String? gardenId;
   final String? farmId;
   final int? reward;
 
@@ -26,7 +28,8 @@ class GardenEventResponse {
     return <String, dynamic>{
       'type': type,
       'extras': extras,
-      'farmId': farmId,
+      'garden_id': gardenId,
+      'farm_id': farmId,
       'reward': reward,
       'farms': farms?.map((e) => e.toMap()).toList(),
       'garden_plots': gardenPlots?.map((e) => e.toMap()).toList(),
@@ -39,7 +42,8 @@ class GardenEventResponse {
       type: map['type'] ?? '',
       extras: map['extras'],
       reward: map['reward'],
-      farmId: map['farmId'],
+      gardenId: map['garden_id'],
+      farmId: map['farm_id'],
       farms: (map['farms'] as List<dynamic>?)
           ?.map((e) => FarmModel.fromMap(e as Map<String, dynamic>))
           .toList(),

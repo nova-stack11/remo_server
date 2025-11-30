@@ -177,7 +177,7 @@ class FarmDataSourceImpl implements FarmDataSource {
         need_water = FALSE,
         stage = stage + 1,
         planted_at = @now
-      WHERE id = @id AND is_dead = FALSE
+      WHERE id = @id AND is_dead = FALSE AND need_water = TRUE
       '''
     );
 

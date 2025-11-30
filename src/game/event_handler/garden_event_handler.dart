@@ -64,6 +64,7 @@ class GardenEventHandler {
 
     final data = GardenDataRequest.fromMap(event.data ?? {});
 
+    print(">>>>>>>>>> _handleWaterTree =${data.farmId}");
     await farmRepository.waterPlant(id: data.farmId.orEmpty());
     final farms = await farmRepository.getFarmById(id: data.farmId.orEmpty());
 
@@ -104,7 +105,10 @@ class GardenEventHandler {
         mapId: event.mapId,
         eventType: UserServerEventType.GARDEN_EVENT_RESULT.name,
         data: GardenEventResponse(
-            type: GardenEventType.harvestTree.name, farmId: data.farmId, reward: amount));
+            type: GardenEventType.harvestTree.name,
+            gardenId: data.gardentId,
+            farmId: data.farmId,
+            reward: amount));
   }
 
   Future<void> _handlePlantTree(
