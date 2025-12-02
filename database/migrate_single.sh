@@ -12,7 +12,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 CONTAINER="postgres_db"
 DB="game_db"
 USER="game_user"
-FILENAME="$SCRIPT_DIR/migrations/018_add_coin_diamond_to_users.sql"
+FILENAME="$SCRIPT_DIR/migrations/020_friend_system.sql"
 
 if [ ! -f "$FILENAME" ]; then
   echo "❌ Error: File '$FILENAME' does not exist."

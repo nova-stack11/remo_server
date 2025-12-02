@@ -8,10 +8,12 @@ import 'api/data/datasource/inventory_datasource.dart';
 import 'api/data/datasource/seed_datasource.dart';
 import 'api/data/datasource/user_datasource.dart';
 import 'api/data/datasource/user_seed_datasource.dart';
+import 'api/data/datasource/friend_datasource.dart';
 import 'api/data/repositories/character_repository.dart';
 import 'api/data/repositories/farm_repository.dart';
 import 'api/data/repositories/garden_repository.dart';
 import 'api/data/repositories/seed_repository.dart';
+import 'api/data/repositories/friend_repository.dart';
 import 'api/data/repositories/user_repository.dart';
 import 'api/service/user/user_initializer_service.dart';
 import 'api/usecases/authenticator.dart';
@@ -119,6 +121,18 @@ abstract class Injector {
         .use(
           provider<SeedDataSource>(
             (_) => SeedDataSourceImpl(dbService),
+          ),
+        )
+        .use(
+          provider<FriendDataSource>(
+            (_) => FriendDataSourceImpl(dbService),
+          ),
+        )
+        .use(
+          provider(
+            (context) => FriendRepository(
+              datasource: context.read(),
+            ),
           ),
         )
         // ---------------------------------------------------------
