@@ -7,13 +7,17 @@ import 'api/data/datasource/garden_datasource.dart';
 import 'api/data/datasource/inventory_datasource.dart';
 import 'api/data/datasource/seed_datasource.dart';
 import 'api/data/datasource/user_datasource.dart';
+import 'api/data/datasource/user_map_state_datasource.dart';
 import 'api/data/datasource/user_seed_datasource.dart';
 import 'api/data/datasource/friend_datasource.dart';
+import 'api/data/datasource/map_datasource.dart';
+import 'api/data/datasource/map_member_datasource.dart';
 import 'api/data/repositories/character_repository.dart';
 import 'api/data/repositories/farm_repository.dart';
 import 'api/data/repositories/garden_repository.dart';
 import 'api/data/repositories/seed_repository.dart';
 import 'api/data/repositories/friend_repository.dart';
+import 'api/data/repositories/user_map_state_repository.dart';
 import 'api/data/repositories/user_repository.dart';
 import 'api/service/user/user_initializer_service.dart';
 import 'api/usecases/authenticator.dart';
@@ -71,7 +75,6 @@ abstract class Injector {
             ),
           ),
         )
-
         .use(
           provider<GenerateJwtUsecase>(
             (context) => GenerateJwtUsecase(
@@ -85,12 +88,22 @@ abstract class Injector {
               context.read(),
               context.read(),
               context.read(),
+              context.read(),
+              context.read(),
+              context.read(),
             ),
           ),
         )
         .use(
           provider<Datasource>(
             (_) => DbDatasource(dbService),
+          ),
+        )
+        .use(
+          provider(
+            (context) => UserMapStateRepository(
+              datasource: context.read(),
+            ),
           ),
         )
         .use(
@@ -124,6 +137,21 @@ abstract class Injector {
           ),
         )
         .use(
+          provider<MapDatasource>(
+            (_) => MapDatasourceImpl(dbService),
+          ),
+        )
+        .use(
+          provider<MapMemberDatasource>(
+            (_) => MapMemberDatasourceImpl(dbService),
+          ),
+        )
+        .use(
+          provider<UserMapStateDataSource>(
+            (_) => UserMapStateDataSourceImpl(dbService),
+          ),
+        )
+        .use(
           provider<FriendDataSource>(
             (_) => FriendDataSourceImpl(dbService),
           ),
@@ -135,6 +163,7 @@ abstract class Injector {
             ),
           ),
         )
+
         // ---------------------------------------------------------
         // Database service at last
         .use(

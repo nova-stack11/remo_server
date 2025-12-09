@@ -11,6 +11,7 @@ import '../../main.dart';
 import '../api/data/repositories/farm_repository.dart';
 import '../api/data/repositories/garden_repository.dart';
 import '../api/data/repositories/seed_repository.dart';
+import '../api/data/repositories/user_map_state_repository.dart';
 import '../infrastructure/websocket/websocket_provider.dart';
 import 'components/garden_component.dart';
 import 'components/player.dart';
@@ -26,6 +27,7 @@ class GameServer extends Game {
   late final GardenRepository _gardenRepository = AppInject.I.gardenRepository;
   late final FarmRepository _farmRepository = AppInject.I.farmRepository;
   late final SeedRepository _seedRepository = AppInject.I.seedRepository;
+  late final UserMapStateRepository _userMapStateRepository = AppInject.I.userMapStateRepository;
   late final GardenEventHandler _gardenEventHandler =
       AppInject.I.gardenEventHandler;
 
@@ -204,38 +206,63 @@ class GameServer extends Game {
     );
   }
 
-  void _joinPlayerInTheGame(WebsocketClient client, JoinEvent message) {
-    if (components
-        .whereType<Player>()
-        .any((element) => element.id == message.userId)) {
-      return;
-    }
+  void _joinPlayerInTheGame(WebsocketClient client, JoinEvent message) async {
+    // Prevent duplicate players
+    if (_isPlayerAlreadyJoined(message.userId)) return;
 
-    // Create initial position
-    final position = GameVector(
+    final mapState = await _getSavedMapState(message.userId);
+    final mapId = mapState.savedMapId;
+    final position = _resolveSpawnPosition(mapState);
+
+    final player = _createPlayer(client, message, position);
+    await _spawnPlayerOnMap(player, mapId);
+  }
+
+  bool _isPlayerAlreadyJoined(String userId) {
+    return components.whereType<Player>().any((p) => p.id == userId);
+  }
+
+  Future<_SavedMapState> _getSavedMapState(String userId) async {
+    final mapState = await _userMapStateRepository.getStateByUserId(userId);
+    return _SavedMapState(
+      savedMapId: mapState?.getOrNull('map_id')?.toString(),
+      x: mapState?.getOrNull('pos_x') as double?,
+      y: mapState?.getOrNull('pos_y') as double?,
+    );
+  }
+
+  GameVector _resolveSpawnPosition(_SavedMapState state) {
+    if (state.x != null && state.y != null) {
+      return GameVector(x: state.x!, y: state.y!);
+    }
+    return GameVector(
       x: (3 + Random().nextInt(3)) * tileSize,
       y: 11 * tileSize,
     );
-    // Adds Player
+  }
 
-    final player = Player(
+  Player _createPlayer(
+    WebsocketClient client,
+    JoinEvent message,
+    GameVector position,
+  ) {
+    return Player(
       state: ComponentStateModel(
         id: message.userId,
         name: message.name,
         position: position,
         size: GameVector.all(16),
         life: 100,
-        properties: {
-          'skin': message.skin,
-        },
+        properties: {'skin': message.skin},
       ),
       client: client,
     );
+  }
 
-    final initialMap = getOrCreateMap(message.map)..add(player);
-
-    // send ACK to client that request join.
-    onPlayerChangeMap(player, initialMap);
+  Future<void> _spawnPlayerOnMap(Player player, String? mapId) async {
+    final targetMap = getOrCreateMap(mapId ?? "default_map");
+    targetMap.add(player);
+    onPlayerChangeMap(player, targetMap);
   }
 
   @override
@@ -285,4 +312,11 @@ class GameServer extends Game {
     logger.i('Stop Game loop');
     super.stop();
   }
+}
+
+class _SavedMapState {
+  final String? savedMapId;
+  final double? x;
+  final double? y;
+  _SavedMapState({this.savedMapId, this.x, this.y});
 }

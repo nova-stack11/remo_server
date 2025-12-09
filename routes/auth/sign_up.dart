@@ -26,11 +26,15 @@ Future<Response> onRequest(RequestContext context) async {
 
       return result.when(
         (user) async {
-          // Initialize user data (garden plots, future expansions)
-          // This method should be implemented inside UserRepository
           await repository.initializeNewUserData(user.id ?? '');
-
-          return ApiResponseFactory.success(data: user.toMap());
+          final userSingup = await repository.getUserById(user.id ?? '');
+          return userSingup.when(
+            (success) {
+              print(">>>>>>>>>> fff =${success}");
+              return ApiResponseFactory.success(data: success);
+            },
+            (error) => ApiResponseFactory.error(message: error.toString()),
+          );
         },
         (error) => ApiResponseFactory.error(message: error.toString()),
       );

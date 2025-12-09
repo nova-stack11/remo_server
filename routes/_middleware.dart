@@ -1,6 +1,7 @@
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_frog_auth/dart_frog_auth.dart';
 
+import '../src/api/data/datasource/user_map_state_datasource.dart';
 import '../src/api/data/model/user_model.dart';
 import '../src/api/usecases/authenticator.dart';
 import '../src/database/database.dart';
@@ -30,6 +31,7 @@ Handler middleware(Handler handler) {
           datasource: context.read<FriendDataSource>(),
         );
       }))
+
       // 1) Xác thực bearer → tạo UserModel
       .use(
         bearerAuthentication<UserModel>(

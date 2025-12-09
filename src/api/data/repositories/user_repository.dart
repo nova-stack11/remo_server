@@ -108,6 +108,19 @@ class UserRepository {
     return Success(UserModel.fromMap(userMap));
   }
 
+
+  Future<Result<Map<String, dynamic>?, GetUserException>> getUserById(
+    String id,
+  ) async {
+    final userMap = await userDataSource.getUserById(id: id);
+    if (userMap == null) {
+      return Error(NotFoundUserException());
+    }
+    return Success(userMap);
+  }
+
+
+
   Future<Result<UserModel, CreateUserException>> createUser(
     String login,
     String password,
