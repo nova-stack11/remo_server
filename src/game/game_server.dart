@@ -16,6 +16,8 @@ import '../infrastructure/websocket/websocket_provider.dart';
 import 'components/garden_component.dart';
 import 'components/player.dart';
 import 'event_handler/garden_event_handler.dart';
+import 'event_handler/chat_event_handler.dart';
+import 'event_handler/friend_event_handler.dart';
 import 'maps/home.dart';
 
 class GameServer extends Game {
@@ -32,6 +34,15 @@ class GameServer extends Game {
       AppInject.I.gardenEventHandler;
 
   List<WebsocketClient> clients = [];
+
+  // Map userId to WebsocketClient for direct messaging (chat/friends)
+  final Map<String, WebsocketClient> userClients = {};
+
+  // Chat and friend event handlers
+  late final ChatEventHandler _chatEventHandler =
+      ChatEventHandler(userClients: userClients);
+  late final FriendEventHandler _friendEventHandler =
+      FriendEventHandler(userClients: userClients);
 
   final WebsocketProvider server;
 
@@ -53,7 +64,45 @@ class GameServer extends Game {
           sendUserInventory(client, event.userId);
         },
       )
-      ..on<MyChangeMapEvent>(EventType.CHANGE_MAP.name, _playerChangeMap);
+      ..on<MyChangeMapEvent>(EventType.CHANGE_MAP.name, _playerChangeMap)
+      // Chat events
+      ..on<ChatMessageRequest>(
+        UserClientEventType.CHAT_MESSAGE.name,
+        (event) {
+          final userId = _getUserIdFromClient(client);
+          if (userId != null) {
+            _chatEventHandler.handleChatMessage(client, event, userId);
+          }
+        },
+      )
+      ..on<MarkReadRequest>(
+        UserClientEventType.MARK_READ.name,
+        (event) {
+          final userId = _getUserIdFromClient(client);
+          if (userId != null) {
+            _chatEventHandler.handleMarkRead(client, event, userId);
+          }
+        },
+      )
+      ..on<GroupActionRequest>(
+        UserClientEventType.GROUP_ACTION.name,
+        (event) {
+          final userId = _getUserIdFromClient(client);
+          if (userId != null) {
+            _chatEventHandler.handleGroupAction(client, event, userId);
+          }
+        },
+      )
+      // Friend events
+      ..on<FriendRequestEvent>(
+        UserClientEventType.FRIEND_REQUEST.name,
+        (event) {
+          final userId = _getUserIdFromClient(client);
+          if (userId != null) {
+            _friendEventHandler.handleFriendRequest(client, event, userId);
+          }
+        },
+      );
   }
 
   void _startFarmGrowLoop() {
@@ -155,12 +204,36 @@ class GameServer extends Game {
 
   void leaveClient(WebsocketClient client) {
     clients.remove(client);
+
+    // Get userId before removing player
+    final userId = _getUserIdFromClient(client);
+
     for (final map in maps) {
       map.components
           .whereType<Player>()
           .where((element) => element.client.id == client.id)
           .forEach((element) => element.removeFromParent());
     }
+
+    // Remove from userClients and update presence
+    if (userId != null) {
+      userClients.remove(userId);
+
+      // Set user presence to offline
+      try {
+        AppInject.I.presenceRepository.setUserOffline(userId: userId).then((_) {
+          // Broadcast offline status to friends
+          _friendEventHandler.broadcastStatusChange(
+            userId: userId,
+            status: 'offline',
+          );
+          logger.i('✅ User $userId is now offline');
+        });
+      } catch (e) {
+        logger.e('⚠️  Failed to update presence on disconnect for $userId: $e');
+      }
+    }
+
     requestUpdate();
     logger.i('Client(${client.id}) Disconnected!');
   }
@@ -216,6 +289,22 @@ class GameServer extends Game {
 
     final player = _createPlayer(client, message, position);
     await _spawnPlayerOnMap(player, mapId);
+
+    // Track user for chat/friend system
+    userClients[message.userId] = client;
+
+    // Set user presence to online
+    try {
+      await AppInject.I.presenceRepository.setUserOnline(userId: message.userId);
+      // Broadcast online status to friends
+      await _friendEventHandler.broadcastStatusChange(
+        userId: message.userId,
+        status: 'online',
+      );
+      logger.i('✅ User ${message.userId} is now online');
+    } catch (e) {
+      logger.e('⚠️  Failed to update presence for ${message.userId}: $e');
+    }
   }
 
   bool _isPlayerAlreadyJoined(String userId) {
@@ -305,6 +394,23 @@ class GameServer extends Game {
   void onStart() {
     logger.i('Start Game loop');
     super.onStart();
+  }
+
+  // Helper to get userId from client
+  String? _getUserIdFromClient(WebsocketClient client) {
+    // Find player associated with this client
+    for (final map in maps) {
+      final player = map.components.whereType<Player>().firstWhereOrNull(
+        (p) => p.client.id == client.id,
+      );
+      if (player != null) {
+        return player.state.id;
+      }
+    }
+    // If not found in players, try to find in userClients map
+    return userClients.entries
+        .firstWhereOrNull((entry) => entry.value.id == client.id)
+        ?.key;
   }
 
   @override

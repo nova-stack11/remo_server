@@ -22,6 +22,17 @@ export 'src/socket_event/user/inventory_response.dart';
 export 'src/socket_event/user/inventory_request.dart';
 export 'src/socket_event/garden/garden_data_request.dart';
 
+// Chat events
+export 'src/socket_event/chat/chat_message_request.dart';
+export 'src/socket_event/chat/chat_message_response.dart';
+export 'src/socket_event/chat/chat_message_status_update.dart';
+export 'src/socket_event/chat/mark_read_request.dart';
+export 'src/socket_event/chat/group_action_request.dart';
+
+// Friend events
+export 'src/socket_event/friend/friend_request_event.dart';
+export 'src/socket_event/friend/friend_event_response.dart';
+
 export 'src/events/join_map_event.dart';
 export 'src/events/join_event.dart';
 export 'src/events/move_event.dart';

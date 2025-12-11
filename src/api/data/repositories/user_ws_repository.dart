@@ -14,4 +14,8 @@ class UserWsRepository {
       amount: amount,
     );
   }
+
+  Future<Map<String, dynamic>?> getUserById(String userId) async {
+    return datasource.getUserById(id: userId);
+  }
 }

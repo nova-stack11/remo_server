@@ -82,5 +82,51 @@ class WebsocketRegisterType {
         fromMap: PlayerEvent.fromMap,
       ),
     );
+
+    // Chat events
+    websocket.registerType<ChatMessageRequest>(
+      TypeAdapter(
+        toMap: (type) => type.toMap(),
+        fromMap: ChatMessageRequest.fromMap,
+      ),
+    );
+    websocket.registerType<ChatMessageResponse>(
+      TypeAdapter(
+        toMap: (type) => type.toMap(),
+        fromMap: ChatMessageResponse.fromMap,
+      ),
+    );
+    websocket.registerType<ChatMessageStatusUpdate>(
+      TypeAdapter(
+        toMap: (type) => type.toMap(),
+        fromMap: ChatMessageStatusUpdate.fromMap,
+      ),
+    );
+    websocket.registerType<MarkReadRequest>(
+      TypeAdapter(
+        toMap: (type) => type.toMap(),
+        fromMap: MarkReadRequest.fromMap,
+      ),
+    );
+    websocket.registerType<GroupActionRequest>(
+      TypeAdapter(
+        toMap: (type) => type.toMap(),
+        fromMap: GroupActionRequest.fromMap,
+      ),
+    );
+
+    // Friend events
+    websocket.registerType<FriendRequestEvent>(
+      TypeAdapter(
+        toMap: (type) => type.toMap(),
+        fromMap: FriendRequestEvent.fromMap,
+      ),
+    );
+    websocket.registerType<FriendEventResponse>(
+      TypeAdapter(
+        toMap: (type) => type.toMap(),
+        fromMap: FriendEventResponse.fromMap,
+      ),
+    );
   }
 }
