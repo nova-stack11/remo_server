@@ -174,15 +174,28 @@ class ChatDataSourceImpl implements ChatDataSource {
   }) async {
     final query = Sql.named('''
       SELECT
-        id::text         AS id,
-        type::text       AS type,
-        name,
-        avatar_url       AS avatar_url,
-        created_by::text AS created_by,
-        created_at::text AS created_at,
-        updated_at::text AS updated_at
-      FROM conversations
-      WHERE id = @conversationId
+        c.id::text         AS id,
+        c.type::text       AS type,
+        c.name,
+        c.avatar_url       AS avatar_url,
+        c.created_by::text AS created_by,
+        c.created_at::text AS created_at,
+        c.updated_at::text AS updated_at,
+        (
+          SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', cmem.user_id::text,
+              'username', u.username,
+              'character_name', u.character_name,
+              'gender', u.gender
+            )
+          )
+          FROM conversation_members cmem
+          INNER JOIN users u ON u.id = cmem.user_id
+          WHERE cmem.conversation_id = c.id
+        )::text AS members
+      FROM conversations c
+      WHERE c.id = @conversationId
     ''');
 
     final res = await db.connection.execute(
@@ -259,7 +272,20 @@ class ChatDataSourceImpl implements ChatDataSource {
         lm.content            AS last_message_content,
         lm.type::text         AS last_message_type,
         lm.from_user_id::text AS last_message_from,
-        lm.created_at::text   AS last_message_at
+        lm.created_at::text   AS last_message_at,
+        (
+          SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', cmem.user_id::text,
+              'username', u.username,
+              'character_name', u.character_name,
+              'gender', u.gender
+            )
+          )
+          FROM conversation_members cmem
+          INNER JOIN users u ON u.id = cmem.user_id
+          WHERE cmem.conversation_id = c.id
+        )::text AS members
       FROM conversations c
       INNER JOIN conversation_members cm ON c.id = cm.conversation_id
       LEFT JOIN LATERAL (

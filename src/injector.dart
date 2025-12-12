@@ -12,6 +12,8 @@ import 'api/data/datasource/user_seed_datasource.dart';
 import 'api/data/datasource/friend_datasource.dart';
 import 'api/data/datasource/map_datasource.dart';
 import 'api/data/datasource/map_member_datasource.dart';
+import 'api/data/datasource/chat_datasource.dart';
+import 'api/data/datasource/presence_datasource.dart';
 import 'api/data/repositories/character_repository.dart';
 import 'api/data/repositories/farm_repository.dart';
 import 'api/data/repositories/garden_repository.dart';
@@ -19,6 +21,8 @@ import 'api/data/repositories/seed_repository.dart';
 import 'api/data/repositories/friend_repository.dart';
 import 'api/data/repositories/user_map_state_repository.dart';
 import 'api/data/repositories/user_repository.dart';
+import 'api/data/repositories/chat_repository.dart';
+import 'api/data/repositories/presence_repository.dart';
 import 'api/service/user/user_initializer_service.dart';
 import 'api/usecases/authenticator.dart';
 import 'api/usecases/generate_jwt_usecase.dart';
@@ -159,6 +163,30 @@ abstract class Injector {
         .use(
           provider(
             (context) => FriendRepository(
+              datasource: context.read(),
+            ),
+          ),
+        )
+        .use(
+          provider(
+            (context) => ChatRepository(
+              datasource: context.read(),
+            ),
+          ),
+        )
+        .use(
+      provider<ChatDataSource>(
+            (_) => ChatDataSourceImpl(dbService),
+      ),
+    )
+        .use(
+          provider<PresenceDataSource>(
+            (_) => PresenceDataSourceImpl(dbService),
+          ),
+        )
+        .use(
+          provider(
+            (context) => PresenceRepository(
               datasource: context.read(),
             ),
           ),

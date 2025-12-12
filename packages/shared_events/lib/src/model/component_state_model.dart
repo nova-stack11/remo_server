@@ -8,7 +8,7 @@ class ComponentStateModel {
     required this.position,
     required this.size,
     required this.life,
-    this.speed = 80,
+    this.speed = 200,
     MoveDirectionEnum? direction,
     MoveDirectionEnum? lastDirection,
     this.action,

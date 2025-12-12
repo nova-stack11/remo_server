@@ -94,7 +94,7 @@ class FriendDataSourceImpl implements FriendDataSource {
     String status = 'pending',
   }) async {
     final query = Sql.named('''
-      SELECT 
+      SELECT
         fr.id::text           AS id,
         fr.from_user_id::text AS from_user_id,
         fr.to_user_id::text   AS to_user_id,
@@ -102,9 +102,14 @@ class FriendDataSourceImpl implements FriendDataSource {
         fr.status::text       AS status,
         fr.created_at         AS created_at,
         fr.updated_at         AS updated_at,
-        u.username            AS from_username
+        u.username            AS from_username,
+        u.character_name      AS from_character_name,
+        u.gender              AS from_gender,
+        up.status::text       AS from_status,
+        up.last_seen_at::text AS from_last_seen_at
       FROM friend_requests fr
       JOIN users u ON u.id = fr.from_user_id
+      LEFT JOIN user_presence up ON u.id = up.user_id
       WHERE fr.to_user_id = @to AND fr.status = @status
       ORDER BY fr.created_at DESC
     ''');
@@ -215,9 +220,18 @@ class FriendDataSourceImpl implements FriendDataSource {
   @override
   Future<List<Map<String, dynamic>>> listFriends({required String userId}) async {
     final q = Sql.named('''
-      SELECT f.friend_id::text AS id, u.username, f.created_at
+      SELECT
+        f.friend_id::text AS id,
+        u.username,
+        u.character_name,
+        u.gender,
+        u.birthday,
+        f.created_at,
+        up.status::text      AS status,
+        up.last_seen_at::text AS last_seen_at
       FROM friends f
       JOIN users u ON u.id = f.friend_id
+      LEFT JOIN user_presence up ON u.id = up.user_id
       WHERE f.user_id=@id
       ORDER BY u.username ASC
     ''');
