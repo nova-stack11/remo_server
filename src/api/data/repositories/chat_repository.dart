@@ -6,7 +6,8 @@ class ChatRepository {
   final ChatDataSource datasource;
 
   /// Send a message to a conversation
-  /// Validates that the sender is a member of the conversation
+  /// For direct chats, automatically creates conversation if it doesn't exist
+  /// For group chats, validates that the sender is a member
   Future<Map<String, dynamic>> sendMessage({
     required String conversationId,
     required String fromUserId,
@@ -14,15 +15,38 @@ class ChatRepository {
     required String type,
     Map<String, dynamic>? metadata,
     String? replyToMessageId,
+    String? receiverId, // For direct chats
   }) async {
-    // Validate user is member of conversation
-    final isMember = await datasource.isConversationMember(
+    // Check if conversation exists
+    final conversation = await datasource.getConversation(
       conversationId: conversationId,
-      userId: fromUserId,
     );
 
-    if (!isMember) {
-      throw Exception('User is not a member of this conversation');
+    String actualConversationId = conversationId;
+
+    // If conversation doesn't exist and we have a receiverId, create direct conversation
+    if (conversation == null && receiverId != null) {
+      final directConv = await getOrCreateDirectConversation(
+        user1Id: fromUserId,
+        user2Id: receiverId,
+      );
+      actualConversationId = directConv['id'] as String;
+    } else if (conversation != null) {
+      // For existing conversations (especially groups), validate membership
+      if (conversation['type'] == 'group') {
+        final isMember = await datasource.isConversationMember(
+          conversationId: conversationId,
+          userId: fromUserId,
+        );
+
+        if (!isMember) {
+          throw Exception('User is not a member of this conversation');
+        }
+      }
+      // For direct chats, no need to validate membership
+    } else {
+      // Conversation doesn't exist and no receiverId provided
+      throw Exception('Conversation not found');
     }
 
     // Validate reply message exists if specified
@@ -33,14 +57,14 @@ class ChatRepository {
       if (replyMessage == null) {
         throw Exception('Reply message not found');
       }
-      if (replyMessage['conversation_id'] != conversationId) {
+      if (replyMessage['conversation_id'] != actualConversationId) {
         throw Exception('Reply message is not in this conversation');
       }
     }
 
     // Create the message
     final message = await datasource.createMessage(
-      conversationId: conversationId,
+      conversationId: actualConversationId,
       fromUserId: fromUserId,
       content: content,
       type: type,

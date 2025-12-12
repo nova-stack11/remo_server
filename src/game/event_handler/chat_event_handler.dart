@@ -27,7 +27,7 @@ class ChatEventHandler {
     try {
       print('📨 Chat message from $senderId to conversation ${event.conversationId}');
 
-      // Send message via repository (validates membership)
+      // Send message via repository (auto-creates conversation for direct chats)
       final message = await chatRepository.sendMessage(
         conversationId: event.conversationId,
         fromUserId: senderId,
@@ -35,17 +35,21 @@ class ChatEventHandler {
         type: event.type,
         metadata: event.metadata,
         replyToMessageId: event.replyToMessageId,
+        receiverId: event.receiverId, // For direct chats
       );
+
+      // Use the actual conversation ID (may differ from temp ID for new conversations)
+      final actualConversationId = message['conversation_id'] as String;
 
       // Get conversation members to broadcast
       final memberIds = await chatRepository.getConversationMemberIds(
-        conversationId: event.conversationId,
+        conversationId: actualConversationId,
       );
 
-      // Create response
+      // Create response with actual conversation ID
       final response = ChatMessageResponse(
         id: message['id'] as String,
-        conversationId: message['conversation_id'] as String,
+        conversationId: actualConversationId,
         fromUserId: message['from_user_id'] as String,
         content: message['content'] as String,
         type: message['type'] as String,
